@@ -1,0 +1,45 @@
+<?php
+/**
+ * Poll worker — run from cron every minute:
+ *   * * * * *  php /path/to/xmr-cart/worker/poll.php >> /var/log/xmr-cart.log 2>&1
+ *
+ * Reads open orders, scans for payments, and moves them to confirming / paid /
+ * expired. Buyers' status pages just read the row this updates, so the node is
+ * only ever hit by this one process — not by every browser refresh.
+ */
+
+if ( PHP_SAPI !== 'cli' ) { http_response_code( 403 ); exit( "CLI only.\n" ); }
+
+require_once __DIR__ . '/../lib/bootstrap.php';
+require_once __DIR__ . '/../lib/settle.php';
+
+// Single-instance lock so a slow tick never overlaps the next.
+$lock = fopen( sys_get_temp_dir() . '/xmr-shop-poll.lock', 'c' );
+if ( ! $lock || ! flock( $lock, LOCK_EX | LOCK_NB ) ) {
+	fwrite( STDERR, "[" . date( 'c' ) . "] previous poll still running; skipping.\n" );
+	exit( 0 );
+}
+
+$store = store();
+$xmr   = xmr();
+
+$tip = $xmr->tipHeight();
+$mode = $xmr->isReal() ? 'live' : 'DEMO';
+if ( null === $tip ) {
+	fwrite( STDERR, "[" . date( 'c' ) . "] [$mode] node unreachable; will retry next tick.\n" );
+	exit( 0 );
+}
+
+$open = $store->all( "SELECT * FROM orders WHERE status IN ('pending','confirming') ORDER BY id ASC" );
+$changed = 0;
+foreach ( $open as $order ) {
+	$before = $order['status'];
+	$after  = settle_order( $store, $xmr, $order, $tip );
+	if ( $after !== $before ) {
+		$changed++;
+		echo "[" . date( 'c' ) . "] order #{$order['id']} ({$order['token']}): {$before} -> {$after}\n";
+	}
+}
+
+echo "[" . date( 'c' ) . "] [$mode] tip={$tip} open=" . count( $open ) . " changed={$changed}\n";
+flock( $lock, LOCK_UN );

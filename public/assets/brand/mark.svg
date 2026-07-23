@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Monero merchant">
+  <!-- xmr-cart default mark. Monero-orange rounded square with a bold M.
+       Path is used (not <text>) so the render is font-independent and centered
+       identically across rasterisers. -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#ff6600"/>
+  <path fill="#ffffff" d="M 128 128 L 176 128 L 256 256 L 336 128 L 384 128 L 384 384 L 336 384 L 336 232 L 272 336 L 240 336 L 176 232 L 176 384 L 128 384 Z"/>
+</svg>

@@ -1,0 +1,368 @@
+/* ------------------------------------------------------------------ *
+ *  xmr-cart — a Monero-native storefront. Self-contained: no web fonts,
+ *  no external requests (a privacy store shouldn't leak to a font CDN).
+ *  Display = system serif. Figures = system mono with tabular numerals,
+ *  because this whole thing is about exact money.
+ * ------------------------------------------------------------------ */
+:root{
+  --paper:#f6f5f1; --paper-2:#efece4; --ink:#1b1a16; --ink-soft:#54514a;
+  --pewter:#8a8578; --line:#d8d3c7; --line-strong:#c3bdae;
+  --struck:#ff6600;        /* Monero orange */
+  --struck-ink:#c24a00;    /* deeper tone for text on light bg (AA contrast) */
+  --settled:#2f6d4f;       /* paid */
+  --settled-bg:#e7f0ea;
+  --warn:#8a5a12; --warn-bg:#f7eeda;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--sans);color:var(--ink);line-height:1.55}
+body.store{background:var(--paper)}
+a{color:var(--struck-ink)}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* masthead — a struck mark + wordmark, hairline ruled like a certificate */
+.masthead{border-bottom:1px solid var(--line-strong);background:var(--paper)}
+.masthead .wrap{display:flex;align-items:center;gap:14px;padding:22px 20px}
+.mark{width:38px;height:38px;flex:0 0 auto;border-radius:50%;
+  border:1.5px solid var(--ink);display:grid;place-items:center;
+  font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.02em;
+  background:
+    repeating-conic-gradient(from 0deg,var(--paper) 0deg 8deg,var(--paper-2) 8deg 16deg);
+}
+.wordmark{font-family:var(--serif);font-size:22px;letter-spacing:.01em}
+.wordmark small{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--pewter);margin-top:1px}
+.masthead .spacer{flex:1}
+.masthead .masthead-note{font-size:12px;color:var(--pewter);text-align:right}
+
+/* Chain-connection pill — live trust signal under the tagline.
+   Green dot with a slow pulse when all settlement nodes are healthy;
+   amber when some are down; grey when all unreachable. */
+.chainstatus{display:inline-flex;align-items:center;gap:6px;margin-top:6px;
+  padding:2px 8px 2px 6px;border:1px solid var(--line);border-radius:999px;
+  background:var(--paper);font-size:11px;color:var(--pewter);letter-spacing:.02em;
+  font-family:var(--sans);line-height:1.4;user-select:none}
+.chainstatus .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:#8a919b;box-shadow:0 0 0 0 rgba(138,145,155,0);animation:none}
+.chainstatus .txt{white-space:nowrap}
+.chainstatus .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.chainstatus-ok .dot{background:#3aa354;
+  box-shadow:0 0 0 0 rgba(58,163,84,.55);animation:chainpulse 2.4s ease-out infinite}
+.chainstatus-partial .dot{background:#d18b1a;
+  box-shadow:0 0 0 0 rgba(209,139,26,.55);animation:chainpulse 2.4s ease-out infinite}
+.chainstatus-down .dot{background:#c14646}
+.chainstatus-unknown .dot{background:#8a919b}
+@keyframes chainpulse{
+  0%{box-shadow:0 0 0 0 rgba(58,163,84,.55)}
+  70%{box-shadow:0 0 0 6px rgba(58,163,84,0)}
+  100%{box-shadow:0 0 0 0 rgba(58,163,84,0)}
+}
+.chainstatus-partial .dot{animation-name:chainpulse-amber}
+@keyframes chainpulse-amber{
+  0%{box-shadow:0 0 0 0 rgba(209,139,26,.55)}
+  70%{box-shadow:0 0 0 6px rgba(209,139,26,0)}
+  100%{box-shadow:0 0 0 0 rgba(209,139,26,0)}
+}
+/* on dark banners, invert the pill background so it stays legible */
+.masthead.has-banner.banner-light .chainstatus{background:rgba(12,11,9,.55);border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.85)}
+.masthead.has-banner.banner-light .chainstatus .mono{color:#fff}
+
+/* catalog grid */
+.lede{font-family:var(--serif);font-size:clamp(24px,4vw,34px);line-height:1.15;margin:34px 0 6px}
+.sub{color:var(--ink-soft);margin:14px 0 30px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;padding-bottom:48px}
+.card{border:1px solid var(--line);background:#fff;display:flex;flex-direction:column}
+.card .ph{aspect-ratio:1/1;background:
+  radial-gradient(120% 120% at 30% 20%,#fff 0%,#e9e6dd 60%,#d8d3c7 100%);
+  display:grid;place-items:center;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover}
+.card .ph .noimg{font-family:var(--serif);color:var(--pewter);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{font-family:var(--serif);font-size:18px;margin:0}
+.card .spec{font-size:12.5px;color:var(--pewter);display:flex;gap:10px;flex-wrap:wrap}
+.card .spec .stamp{border:1px solid var(--line-strong);border-radius:999px;padding:1px 8px;color:var(--ink-soft)}
+.card .price{margin-top:auto;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.card .price .fiat{font-family:var(--mono);font-size:17px;font-variant-numeric:tabular-nums;line-height:1.2}
+.card .price .fiat .xmr-sec{display:block;font-size:11.5px;color:var(--pewter);font-weight:normal;margin-top:1px}
+.card .price .stk{font-size:12px;color:var(--pewter);flex-shrink:0}
+.card .price .stk.out{color:var(--struck-ink)}
+
+/* buttons */
+.btn{display:inline-block;font:inherit;cursor:pointer;border:1px solid var(--ink);
+  background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:2px;
+  text-decoration:none;letter-spacing:.01em}
+.btn:hover{background:#000}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--paper-2)}
+.btn.block{display:block;width:100%;text-align:center}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+
+/* generic panel / detail */
+.panel{background:#fff;border:1px solid var(--line);padding:26px;margin:30px 0}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:30px 0}
+.detail .ph{aspect-ratio:1/1;background:
+  radial-gradient(120% 120% at 30% 20%,#fff,#e9e6dd 60%,#d8d3c7);border:1px solid var(--line);
+  display:grid;place-items:center;overflow:hidden}
+.detail .ph img{width:100%;height:100%;object-fit:cover}
+.detail h1{font-family:var(--serif);font-size:30px;margin:0 0 4px}
+.field{display:block;margin:16px 0}
+.field label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pewter);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line-strong);border-radius:2px;background:#fff}
+.field textarea{min-height:84px;resize:vertical}
+.hint{font-size:12.5px;color:var(--pewter)}
+.subhead{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--pewter);margin:0 0 10px;line-height:1.3}
+.cert .subhead{font-size:14px;margin:-2px 0 8px}
+.rowline{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dotted var(--line-strong)}
+.rowline .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.big-value{font-family:var(--mono);font-size:26px;color:var(--struck-ink);font-variant-numeric:tabular-nums}
+
+/* pay certificate */
+.cert{background:#fff;border:1px solid var(--line-strong);padding:0;margin:30px 0}
+.cert .top{height:8px;background:repeating-linear-gradient(-45deg,var(--paper-2) 0 6px,#fff 6px 12px);border-bottom:1px solid var(--line)}
+.cert .inner{padding:28px}
+.cert h1{font-family:var(--serif);font-size:24px;margin:0 0 2px}
+.qr{display:grid;place-items:center;padding:16px;background:#fff;border:1px solid var(--line);width:max-content;margin:16px auto}
+.qr svg,.qr img{display:block;width:220px;height:220px}
+.addr{font-family:var(--mono);font-size:13px;word-break:break-all;background:var(--paper-2);border:1px solid var(--line);padding:10px 12px;border-radius:2px}
+.copy{margin-left:8px;font-size:12px;padding:3px 8px;cursor:pointer;border:1px solid var(--line-strong);background:#fff;border-radius:2px}
+
+/* status pills (shared with console) */
+.pill{display:inline-block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 9px;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-soft);background:var(--paper-2)}
+.pill.pending{}
+.pill.confirming{color:var(--warn);background:var(--warn-bg);border-color:#e6d5ac}
+.pill.paid{color:var(--settled);background:var(--settled-bg);border-color:#bcd8c8}
+.pill.shipped{color:#2b4a7a;background:#e6edf6;border-color:#c3d3e8}
+.pill.expired,.pill.cancelled{color:var(--struck-ink);background:#f3e5dd;border-color:#e6ccbd}
+
+.notice{border:1px solid #e6d5ac;background:var(--warn-bg);color:var(--warn);padding:12px 14px;border-radius:2px;margin:16px 0;font-size:14px}
+.footer{border-top:1px solid var(--line-strong);color:var(--pewter);font-size:12.5px;padding:22px 0 40px}
+
+@media (max-width:640px){ .detail{grid-template-columns:1fr} }
+
+/* ============================ CONSOLE (admin) ============================ */
+body.console{background:#16171b;color:#d7dae0;font-family:var(--sans)}
+body.console a{color:#e0a074}
+.console .bar{background:#101115;border-bottom:1px solid #262a31;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.console .bar .t{font-family:var(--serif);font-size:18px;color:#f2f3f5}
+.console .bar .env{font-family:var(--mono);font-size:12px;color:#8b909a;border:1px solid #2b303a;padding:2px 8px;border-radius:999px}
+.console .bar .env.demo{color:#e0a074;border-color:#5a3a26}
+.console .bar .spacer{flex:1}
+.console .wrap2{max-width:1180px;margin:0 auto;padding:22px 20px}
+.console .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.console .stat{background:#1c1e24;border:1px solid #2a2f38;border-radius:4px;padding:14px 16px}
+.console .stat .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7f8593}
+.console .stat .v{font-family:var(--mono);font-size:22px;color:#f2f3f5;margin-top:4px;font-variant-numeric:tabular-nums}
+.console .stat .v.ok{color:#6cc39a}.console .stat .v.bad{color:#e07a5f}
+.console h2{font-family:var(--serif);font-weight:600;font-size:20px;color:#eceef1;margin:26px 0 12px;border-bottom:1px solid #262a31;padding-bottom:8px}
+.console table{width:100%;border-collapse:collapse;font-size:13.5px}
+.console th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7f8593;padding:8px 10px;border-bottom:1px solid #2a2f38}
+.console td{padding:9px 10px;border-bottom:1px solid #23262d;vertical-align:top}
+.console tr:hover td{background:#1b1d23}
+.console .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.console .muted{color:#7f8593}
+.console .cbtn{font:inherit;font-size:13px;cursor:pointer;border:1px solid #3a4150;background:#22262e;color:#dfe2e7;padding:7px 12px;border-radius:3px;text-decoration:none;display:inline-block}
+.console .cbtn:hover{background:#2a2f39}
+.console .cbtn.go{background:#ff6600;border-color:#ff6600;color:#fff}
+.console .cbtn.go:hover{background:#c65f27}
+.console .cbtn.warn{border-color:#5a3a26;color:#e0a074}
+.console .field label{color:#8b909a}
+.console .field input,.console .field textarea,.console .field select{background:#101115;border:1px solid #2b303a;color:#e6e8ec}
+.console .panel2{background:#1c1e24;border:1px solid #2a2f38;border-radius:4px;padding:18px;margin:14px 0}
+.console .pill{background:#22262e;border-color:#333a45;color:#aeb4bf}
+.console .pill.confirming{color:#e0b060;background:#2c2718;border-color:#4a3f22}
+.console .pill.paid{color:#6cc39a;background:#16281f;border-color:#295040}
+.console .pill.shipped{color:#7aa2d8;background:#1a2333;border-color:#2e415f}
+.console .pill.expired,.console .pill.cancelled{color:#e08a70;background:#2b1c17;border-color:#523228}
+.console .loud{border:1px solid #6b4a1f;background:#2a2213;color:#e0b878;padding:12px 14px;border-radius:4px;margin-bottom:18px}
+.console form.inline{display:inline}
+.console .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.console .grid2{grid-template-columns:1fr}}
+
+/* ---- storefront: product gallery ---- */
+.shots{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.shot{padding:0;border:1px solid var(--line);background:#fff;cursor:pointer;width:64px;height:64px;overflow:hidden;border-radius:2px}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot:hover{border-color:var(--pewter)}
+.shot.active{border:2px solid var(--struck)}
+
+/* ---- console: per-product photo strip ---- */
+.console tr.photorow td{padding-top:0;border-bottom:1px solid #23262d}
+.console .thumbs{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.console .thumb{margin:0;width:84px;text-align:center}
+.console .thumb img{width:84px;height:84px;object-fit:cover;border:1px solid #2a2f38;border-radius:3px;display:block}
+.console .thumb figcaption{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7f8593;margin-top:3px;display:flex;gap:4px;justify-content:center}
+.console .thumb.main img{border-color:#ff6600}
+.console .thumb.main figcaption{color:#e0a074}
+.console .thumb.empty{width:84px;height:84px;border:1px dashed #3a4150;border-radius:3px;display:grid;place-items:center;color:#5f6673;font-size:10px}
+.console .cbtn.tiny{padding:1px 6px;font-size:11px;line-height:1.4}
+.console .addbox{width:84px;height:84px;border:1px dashed #3a4150;border-radius:3px;display:grid;place-items:center}
+.console .addbox:hover{border-color:#ff6600}
+.console .addlabel{cursor:pointer;color:#8b909a;font-size:11px;text-align:center;display:grid;place-items:center;width:100%;height:100%}
+.console .addlabel input{display:none}
+
+/* brand mark holds the Monero logo image */
+.mark.mark-img{background:none;border:none;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.mark.mark-img img{display:block;width:38px;height:38px}
+
+/* batch story blurb under the headline */
+.batch-note{margin:10px 0 16px;padding-left:14px;border-left:2px solid var(--struck);color:var(--ink);font-size:15px;line-height:1.65}
+
+/* ---- payment progress meter (replaces the decorative cert stripe) ---- */
+.cert .top{position:relative;height:10px;background:var(--paper-2);border-bottom:1px solid var(--line);overflow:hidden}
+.cert .top .fill{
+  position:absolute;inset:0 auto 0 0;width:0%;
+  background:linear-gradient(90deg,#ff6600,#ff8a3d);
+  transition:width .6s cubic-bezier(.4,0,.2,1);
+}
+/* pre-payment: a small live sliver in a quieter tone, so the meter reads as
+   "we're listening" rather than "dead" while nothing has arrived yet */
+.cert .top.waiting .fill{
+  background-image:linear-gradient(90deg,#8a8b7f,#a8a99c),
+    repeating-linear-gradient(-45deg,rgba(255,255,255,.22) 0 8px,transparent 8px 16px);
+  background-blend-mode:overlay;
+  animation:meterstripe 1.6s linear infinite;
+}
+/* candy-stripe animation while confirmations are landing */
+.cert .top.working .fill{
+  background-image:linear-gradient(90deg,#ff6600,#ff8a3d),
+    repeating-linear-gradient(-45deg,rgba(255,255,255,.28) 0 8px,transparent 8px 16px);
+  background-blend-mode:overlay;
+  animation:meterstripe 1s linear infinite;
+}
+@keyframes meterstripe{from{background-position:0 0,0 0}to{background-position:0 0,32px 0}}
+.cert .top.paid .fill{background:linear-gradient(90deg,#2f9e63,#46bd7e)}
+.cert .top.expired .fill{background:#b0aaa0}
+.meter-cap{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:7px 28px;border-bottom:1px solid var(--line);background:#fbfaf7;
+  font-size:12.5px;color:var(--ink-soft);letter-spacing:.02em}
+.meter-cap .mono{font-family:var(--mono);color:var(--pewter);font-variant-numeric:tabular-nums}
+
+/* contact address under the masthead note */
+.masthead .masthead-note .contact{margin-top:5px}
+.masthead .masthead-note .contact a{color:var(--struck-ink);text-decoration:none;border-bottom:1px solid rgba(194,74,0,.35)}
+.masthead .masthead-note .contact a:hover{border-bottom-color:var(--struck-ink)}
+
+/* multi-line tagline: keep the uppercase tracking readable across lines */
+.wordmark small{line-height:1.45;margin-top:9px}
+
+/* footer: centered, full width — line breaks are set by hand in the console */
+.footer .wrap{text-align:center;line-height:1.6}
+
+/* multiple live batches, stacked */
+.batch + .batch, .batch-next{margin-top:46px}
+.batch-next{padding-top:34px;border-top:1px solid var(--line)}
+.batch .lede{margin-bottom:6px}
+
+/* checkout field markers */
+.req{color:var(--struck);font-weight:600}
+.field .hint{font-size:12px;color:var(--pewter);margin-top:3px}
+.field textarea{font-family:inherit}
+
+/* wordmark */
+.wordmark{font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:bold;
+  line-height:1.15;letter-spacing:-.01em;color:#ff6600;text-decoration:none}
+.masthead .masthead-note .convert-link a{
+  display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;
+  color:#fff;background:var(--struck);padding:5px 12px;border-radius:999px;
+  text-decoration:none;border:0}
+.masthead .masthead-note .convert-link a:hover{background:#e05c00}
+
+/* ---- masthead: stacked + left-justified (overrides the old flex row) ---- */
+.masthead .wrap{display:block;padding:24px 20px 20px}
+.masthead .brand{display:flex;align-items:center;gap:12px}
+.masthead .spacer{display:none}
+
+/* tagline now sits on its own line under the lockup, not indented */
+.masthead .tagline{
+  font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--pewter);line-height:1.5;margin-top:10px}
+.wordmark small{display:none}   /* the tagline moved out of the wordmark */
+
+/* the old right-hand column: now left-aligned, under everything */
+.masthead .masthead-note{text-align:right;max-width:none;margin-top:12px;line-height:1.55}
+.masthead .masthead-note .contact{margin-top:8px}
+.masthead .masthead-note .convert-link{margin-top:10px}
+
+/* ---- masthead banner: admin-uploaded image behind the header band --------
+ * Full-bleed: the image fills the whole strip above the hairline rule, edge to
+ * edge, not just the 980px column. Custom properties are set inline by
+ * banner_style() in lib/helpers.php. No banner => none of this fires and the
+ * header keeps its plain paper background.
+ */
+.masthead.has-banner{
+  position:relative;
+  background-image:var(--banner-img);
+  background-size:var(--banner-size,cover);
+  background-position:var(--banner-pos,center);
+  background-repeat:no-repeat;
+  min-height:var(--banner-min-h,0);
+  display:flex;align-items:center;      /* text centres vertically in a tall banner */
+}
+/* readability wash between image and type — strength is set in the console */
+.masthead.has-banner::before{
+  content:"";position:absolute;inset:0;
+  background:var(--banner-scrim,transparent);
+  pointer-events:none;
+}
+.masthead.has-banner > .wrap{position:relative;z-index:1;width:100%}
+
+/* light type, for a dark banner */
+.masthead.banner-light .wordmark em{color:#fff}
+.masthead.banner-light .tagline{color:rgba(255,255,255,.74)}
+.masthead.banner-light .masthead-note{color:rgba(255,255,255,.88)}
+.masthead.banner-light .masthead-note .contact a{color:#ffb570;border-bottom-color:rgba(255,181,112,.4)}
+.masthead.banner-light .masthead-note .contact a:hover{border-bottom-color:#ffb570}
+
+/* console: banner preview — deliberately mirrors .masthead.has-banner so what the
+   operator sees in the panel is what the store actually draws (same crop, same wash) */
+.console .banner-preview{
+  position:relative;margin:6px 0 0;border:1px solid #2a2f38;
+  background-image:var(--banner-img);
+  background-size:var(--banner-size,cover);
+  background-position:var(--banner-pos,center);
+  background-repeat:no-repeat;
+  min-height:var(--banner-min-h,215px);
+  display:flex;align-items:center}
+.console .banner-preview::before{
+  content:"";position:absolute;inset:0;background:var(--banner-scrim,transparent);pointer-events:none}
+.console .banner-preview .demo{
+  position:relative;z-index:1;padding:0 20px;
+  font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:bold;color:#ff6600}
+.console .banner-preview .demo em{font-style:normal;font-size:17px;margin-left:8px;color:#111}
+.console .banner-preview.banner-light .demo em{color:#fff}
+
+/* expired quote: louder than a plain notice — the buyer must not send to a dead address */
+.notice.warn{border-color:#d99a6c;background:#fbe9e0;color:#8a3a12}
+.notice.warn strong{display:block;margin-bottom:3px}
+
+/* ---- masthead: two columns on desktop, stacked on mobile ------------------
+ * Desktop: the note sits BESIDE the lockup and its top edge lines up with the
+ * top of the wordmark — same upper limit, left and right.
+ * Mobile: no media query fires, so the default block flow stands and the note
+ * drops beneath the tagline. It must, or the two columns crush each other.
+ */
+@media (min-width:760px){
+  .masthead .wrap{
+    display:flex;
+    align-items:flex-start;      /* THIS is what pins the two tops to the same line */
+    justify-content:space-between;
+    gap:28px;
+  }
+  .masthead .lockup{flex:0 1 auto;min-width:0}
+  .masthead .masthead-note{
+    flex:0 0 auto;
+    margin-top:0;                /* the 12px stacking gap is wrong once it's a column */
+    max-width:46%;               /* never let a long note squeeze the wordmark */
+    padding-top:3px;             /* OPTICAL, not structural: align-items:flex-start levels the
+                                    two BOXES, but the wordmark's glyphs sit ~3px down inside
+                                    their line box while the 12px note starts at the very top of
+                                    its own. Without this the note reads as sitting high. Measured,
+                                    not guessed. Desktop only — mobile stacks and doesn't need it. */
+  }
+}

@@ -1,0 +1,27 @@
+# operator secrets — NEVER commit
+config.php
+config.php.bak*
+
+# runtime data (SQLite DB, buyer PII, uploaded images)
+data/*
+!data/.gitkeep
+
+# uploaded product images
+public/assets/products/*
+!public/assets/products/.gitkeep
+
+# uploaded masthead banner images
+public/assets/banner/*
+!public/assets/banner/.gitkeep
+
+# editor / OS cruft
+*.bak
+*.bak-*
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# PHP composer, if it ever gets added
+/vendor/
+composer.lock
