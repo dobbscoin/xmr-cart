@@ -93,14 +93,23 @@ primary, with a couple of community nodes as fallbacks.
 
 ### Where the list lives
 
-`config.php`, single line, comma-separated URLs:
+Two places, with a defined precedence:
 
-```php
-'nodes' => 'http://127.0.0.1:18081,https://xmr-node.cakewallet.com:18081,https://node.monerodevs.org:18089',
-```
+1. **Admin console → Nodes tab.** Add / edit / remove / reorder nodes from the
+   UI. Changes land in the SQLite `kv` table (`nodes_override`), take effect
+   immediately, and re-probe the fleet. Best fit for iterating on the fleet
+   or rotating a failing node.
+2. **`config.php`** — comma-separated URLs, single line. Ops-first, config-as-
+   code, deterministic:
 
-Edit, save. **PHP-FPM reads `config.php` on every request** — no restart
-needed. Changes take effect on the next storefront hit.
+   ```php
+   'nodes' => 'http://127.0.0.1:18081,https://xmr-node.cakewallet.com:18081,https://node.monerodevs.org:18089',
+   ```
+
+**Lookup order: kv `nodes_override` > `config.php['nodes']`.** If the console
+list is empty (or explicitly reverted with the "Revert to config.php" button
+on the Nodes tab), the scanner falls back to `config.php`. **PHP-FPM reads
+`config.php` on every request** — no restart needed either way.
 
 ### How the scanner uses the list
 
