@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . '/../lib/bootstrap.php';
 
-// NOTE: the real gate is nginx binding this directory to the tailnet (see
-// nginx.conf.example). Auth here is defense-in-depth.
-if ( basename( $_SERVER['SCRIPT_NAME'] ) !== 'login.php' ) {
+// Admin console is passphrase-gated. If no passphrase has been set yet, the
+// first hit to any admin path is bounced to setup.php. login.php + setup.php
+// are the two exceptions (they set up / accept the passphrase themselves).
+$__script = basename( $_SERVER['SCRIPT_NAME'] );
+if ( $__script !== 'login.php' && $__script !== 'setup.php' ) {
 	Auth::require_admin();
 }
+unset( $__script );
 
 function console_head( $title, $envReal ) {
 	echo '<!doctype html><html lang="en"><head><meta charset="utf-8">';

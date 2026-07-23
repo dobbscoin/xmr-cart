@@ -49,14 +49,17 @@ return array(
 	'price_cache_seconds'=> 120,
 
 	// ---- Admin console ------------------------------------------------------
-	// The passphrase below is the gate. Pick a strong one.
-	// Generate a hash:  php -r "echo password_hash('your-passphrase', PASSWORD_DEFAULT).PHP_EOL;"
+	// Leave admin_pass_hash empty. The first visit to /admin/ will send you to
+	// a one-time setup page that asks for a passphrase and stores its hash
+	// inside the store's SQLite database (kv table) — config.php stays yours.
 	//
-	// If you want defense in depth, additionally bind admin/ to a VPN, Tailscale
-	// interface, or localhost in your web-server config so the passphrase is
-	// never even offered a login prompt from the public internet. Recommended
-	// for any shop taking real orders. See README.md § "Hardening the admin".
-	'admin_pass_hash'    => '',                     // password_hash() output; empty = warn loudly
+	// If you'd rather pin the hash here (deterministic config, no DB writes),
+	// paste a bcrypt hash and it will take precedence over the DB value:
+	//   php -r "echo password_hash('your-passphrase', PASSWORD_DEFAULT).PHP_EOL;"
+	//
+	// For defense in depth, additionally bind admin/ to a VPN, Tailscale, or
+	// localhost in your web-server config. See README § "Hardening the admin".
+	'admin_pass_hash'    => '',                     // blank = first-run wizard fires
 	'cookie_secret'      => 'CHANGE_ME_TO_A_LONG_RANDOM_STRING',
 
 	// ---- Order-paid email notifications (optional) --------------------------

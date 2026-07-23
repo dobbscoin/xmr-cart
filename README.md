@@ -36,21 +36,20 @@ lifted intact and wrapped in a lightweight WordPress shim so it runs without WP.
 git clone https://github.com/YOUR/xmr-cart.git /var/www/xmr-cart
 cd /var/www/xmr-cart
 cp config.example.php config.php
-$EDITOR config.php                  # fill in view key, node URL, admin hash, etc.
-
-# Generate the admin passphrase hash:
-php -r "echo password_hash('your-passphrase', PASSWORD_DEFAULT).PHP_EOL;"
-# Paste the output into admin_pass_hash in config.php.
+$EDITOR config.php                  # fill in view key, node URL, currency, etc.
 
 # Runtime dirs must be writable by the web-server user:
 sudo chown -R www-data:www-data data/ public/assets/products/ public/assets/banner/
 sudo chmod 750 data/ public/assets/products/ public/assets/banner/
 ```
 
-Point a vhost at `public/`. `admin/` is passphrase-gated and works over the
-public internet out of the box — no VPN required to get started. For a shop
-taking real orders, additionally lock admin/ down at the web-server layer:
-see [Hardening the admin](#hardening-the-admin) below.
+Point a vhost at `public/`. Load the storefront, then load `/admin/` — the
+first visit sends you to a one-time setup page that asks for a passphrase
+and stores its hash in the SQLite kv table. From then on it's a normal login.
+
+Admin works over the public internet out of the box — no VPN required to get
+started. For a shop taking real orders, additionally lock admin/ down at the
+web-server layer: see [Hardening the admin](#hardening-the-admin) below.
 
 Wire the cron:
 
@@ -59,8 +58,21 @@ Wire the cron:
 17 3 * * * php /var/www/xmr-cart/worker/purge_pii.php >> /var/log/xmr-cart-pii.log 2>&1
 ```
 
-Load the storefront, then log into `admin/` with your passphrase. Create a
-batch, add a product, mark the batch live. That's it.
+Once the passphrase is set and you can sign in: create a batch, add a
+product, mark the batch live. That's it.
+
+### Resetting the admin passphrase
+
+If you forget it, from the shell:
+
+```bash
+sqlite3 data/store.sqlite "DELETE FROM kv WHERE k='admin_pass_hash';"
+```
+
+The next `/admin/` visit will bring the first-run wizard back so you can set
+a new one. If you'd rather pin the hash in `config.php` (config-first,
+deterministic), that value takes precedence over the DB — see the
+`admin_pass_hash` comment in `config.example.php`.
 
 ## Why full node
 
