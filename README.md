@@ -116,13 +116,14 @@ needed. Changes take effect on the next storefront hit.
 
 ### Watching node health
 
-The admin console has a read-only health panel at `/admin/` showing per-node
-status: `OK` / `FAIL`, `PRUNED`, `SYNCING`, tip height, response time. Live
-data comes from `lib/NodeProbe.php`, cached briefly so the storefront's
-chain-status pill doesn't stall the page.
+The **Nodes** tab in the admin console shows per-node status: `OK` / `FAIL`,
+`PRUNED`, `SYNCING`, tip height, response time. The **storefront's
+chain-status pill** shows the same signal at a glance for buyers.
 
-Editing the node list from the admin UI is not implemented yet — it's a
-file edit for now. If you'd like the editor as a feature, open an issue.
+Live data comes from `lib/NodeProbe.php`, cached briefly so page loads
+aren't gated on 4 nodes replying. The "Test all now" button re-probes on
+demand, and every add / edit / remove / reorder from the Nodes tab
+automatically re-probes against the new list.
 
 ## Running your own Monero node
 

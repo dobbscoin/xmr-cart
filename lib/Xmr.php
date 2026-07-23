@@ -28,7 +28,7 @@ class Xmr {
 			require_once __DIR__ . '/wp-shims.php';
 			require_once $util;
 			require_once $scanner;
-			$nodes = (string) Config::get( 'nodes', '' );
+			$nodes = Config::nodesRaw();
 			$this->scanner = new XmrPay_Scanner( $nodes, $this->network, 20 );
 			$this->real    = true;
 		} else {

@@ -146,6 +146,51 @@ switch ( $action ) {
 		$back = 'index.php?tab=nodes';
 		break;
 
+	// ---- nodes: edit the settlement fleet from the console ----
+	// Writes to kv['nodes_override']; Config::nodesRaw() prefers that over
+	// config.php['nodes']. Empty kv falls through to config again.
+	case 'node_add':
+	case 'node_edit':
+	case 'node_remove':
+	case 'node_move':
+		{
+			$nodes = Config::nodesArray();
+			$url   = trim( (string) req( 'url', '' ) );
+			$idx   = (int) req( 'idx', -1 );
+
+			if ( $action === 'node_add' ) {
+				if ( $url !== '' && preg_match( '~^https?://~i', $url ) ) {
+					$nodes[] = $url;
+				}
+			} elseif ( $action === 'node_edit' ) {
+				if ( $idx >= 0 && $idx < count( $nodes ) && $url !== '' && preg_match( '~^https?://~i', $url ) ) {
+					$nodes[ $idx ] = $url;
+				}
+			} elseif ( $action === 'node_remove' ) {
+				if ( $idx >= 0 && $idx < count( $nodes ) ) {
+					array_splice( $nodes, $idx, 1 );
+				}
+			} elseif ( $action === 'node_move' ) {
+				$dir = req( 'dir', 'up' ) === 'down' ? 1 : -1;
+				$j   = $idx + $dir;
+				if ( $idx >= 0 && $idx < count( $nodes ) && $j >= 0 && $j < count( $nodes ) ) {
+					$tmp = $nodes[ $idx ]; $nodes[ $idx ] = $nodes[ $j ]; $nodes[ $j ] = $tmp;
+				}
+			}
+
+			$store->kvSet( 'nodes_override', implode( ',', $nodes ) );
+			nodeprobe()->refresh();  // re-probe against the new list
+			$back = 'index.php?tab=nodes';
+		}
+		break;
+
+	case 'nodes_revert':
+		// Drop the console override → Config::nodesRaw() falls back to config.php.
+		$store->q( "DELETE FROM kv WHERE k='nodes_override'" );
+		nodeprobe()->refresh();
+		$back = 'index.php?tab=nodes';
+		break;
+
 	// ---- gallery: helpers ----
 	case 'save_copy':
 		foreach ( array_keys( copy_defaults() ) as $k ) {
