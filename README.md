@@ -85,6 +85,149 @@ This is a deliberate safety property. Do not "fix" it by disabling the
 commitment check — that removes the guarantee that the scanner correctly
 matches an incoming output's amount to what the buyer owes.
 
+## Configuring settlement nodes
+
+The scanner talks to a list of Monero daemons — the "settlement node fleet"
+in the storefront's chain-status pill. Ideally your own full node is
+primary, with a couple of community nodes as fallbacks.
+
+### Where the list lives
+
+`config.php`, single line, comma-separated URLs:
+
+```php
+'nodes' => 'http://127.0.0.1:18081,https://xmr-node.cakewallet.com:18081,https://node.monerodevs.org:18089',
+```
+
+Edit, save. **PHP-FPM reads `config.php` on every request** — no restart
+needed. Changes take effect on the next storefront hit.
+
+### How the scanner uses the list
+
+- **First responder wins** for per-tick queries — nodes are tried in listed
+  order.
+- **`tip_height` cross-checks as the MIN across responders.** A laggard node
+  can only *delay* settlement, never bring it forward — the scanner refuses
+  to credit an order at a height that isn't confirmed by every reachable
+  node.
+- **Every node must be non-pruned.** See [Why full node](#why-full-node). A
+  pruned node in the list will cause fail-closed on any output it happens to
+  serve — orders identified but never settled.
+
+### Watching node health
+
+The admin console has a read-only health panel at `/admin/` showing per-node
+status: `OK` / `FAIL`, `PRUNED`, `SYNCING`, tip height, response time. Live
+data comes from `lib/NodeProbe.php`, cached briefly so the storefront's
+chain-status pill doesn't stall the page.
+
+Editing the node list from the admin UI is not implemented yet — it's a
+file edit for now. If you'd like the editor as a feature, open an issue.
+
+## Running your own Monero node
+
+The store treats the node fleet as untrusted infrastructure — the fail-closed
+commitment check is the safety net — but running your own primary is a big
+privacy and reliability upgrade. What the operator sees when queries hit
+their node is which subaddresses your buyers are paying. That's a leak worth
+closing.
+
+### Install `monerod`
+
+```bash
+# Ubuntu / Debian — the packaged version is fine for a small shop
+sudo apt install monero
+
+# Or grab the current release for the latest features / fixes:
+#   https://www.getmonero.org/downloads/
+```
+
+### Minimum startup
+
+For a same-box node (store and node on the same machine):
+
+```bash
+monerod \
+  --data-dir /var/lib/monero \
+  --rpc-bind-ip 127.0.0.1 \
+  --rpc-bind-port 18081 \
+  --non-interactive \
+  --log-file /var/log/monero/monerod.log \
+  --log-level 0
+```
+
+For a separate node (store hits it over LAN / VPN):
+
+```bash
+monerod \
+  --data-dir /var/lib/monero \
+  --rpc-bind-ip 10.0.0.5 \                    # your private LAN or VPN IP
+  --rpc-bind-port 18081 \
+  --confirm-external-bind \                    # required whenever bind isn't 127.0.0.1
+  --non-interactive
+```
+
+Then point `config.php`'s `nodes` at `http://127.0.0.1:18081` (same-box) or
+`http://10.0.0.5:18081` (separate node).
+
+### Flags NOT to pass
+
+| flag | why not |
+|---|---|
+| `--prune-blockchain` | pruned nodes can't serve commitments → fail-closed → nothing settles. This is the whole point. |
+| `--restricted-rpc` on the store's RPC port | may block `get_transactions` with `rct=true` and `get_outs`, which the scanner needs. If you're also serving public queries, put restricted on a *separately* bound port (`--rpc-restricted-bind-port`). |
+| `--limit-rate-*` set aggressively low | the scanner does bursty per-order queries at settlement time; strangling the RPC just delays orders. |
+
+### systemd unit
+
+Drop at `/etc/systemd/system/monerod.service`:
+
+```ini
+[Unit]
+Description=Monero full node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=monero
+Group=monero
+ExecStart=/usr/bin/monerod \
+  --data-dir /var/lib/monero \
+  --rpc-bind-ip 127.0.0.1 \
+  --rpc-bind-port 18081 \
+  --non-interactive \
+  --log-file /var/log/monero/monerod.log
+Restart=on-failure
+RestartSec=30
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+
+```bash
+sudo useradd -r -s /usr/sbin/nologin monero || true
+sudo mkdir -p /var/lib/monero /var/log/monero
+sudo chown monero:monero /var/lib/monero /var/log/monero
+sudo systemctl daemon-reload
+sudo systemctl enable --now monerod
+```
+
+### What to expect
+
+- **Disk:** ~200 GB for mainnet as of mid-2026, growing ~50 GB/year. Stagenet
+  is ~20 GB. Give it a dedicated SSD if you can.
+- **Sync time:** first sync is 8–48h on a decent VPS, longer on a home
+  connection. After that it just keeps up.
+- **RAM:** 4 GB is enough. 8 GB is comfortable.
+- **The store keeps working during first sync.** The chain-status pill will
+  say "syncing" and orders won't settle against blocks the node hasn't seen
+  yet, but the storefront serves fine. If you need to take orders immediately,
+  keep community nodes at the top of your `nodes` list until your own is
+  caught up, then rotate to primary.
+
 ## Security posture
 
 - **Admin console is passphrase-gated.** The bcrypt hash in `config.php` is
