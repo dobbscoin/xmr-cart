@@ -7,7 +7,17 @@ csrf_check();
 
 $store  = store();
 $action = (string) req( 'action', '' );
-$back   = 'index.php';
+
+// Default back-URL: whichever tab the form was submitted from. Each case can
+// still override $back explicitly. Referrer-based so that "Mark shipped" from
+// the Orders tab returns to Orders, "Save copy" from Storefront returns to
+// Storefront, etc., without threading a hidden tab field through every form.
+$_refTab = 'orders';
+$_ref    = (string) ( $_SERVER['HTTP_REFERER'] ?? '' );
+if ( $_ref && preg_match( '/[?&]tab=(orders|catalog|storefront|nodes)/', $_ref, $_m ) ) {
+	$_refTab = $_m[1];
+}
+$back = 'index.php?tab=' . $_refTab;
 
 switch ( $action ) {
 
@@ -123,17 +133,17 @@ switch ( $action ) {
 				$p['batch_id'] = $newBatch;   // redirect to wherever it now lives
 			}
 		}
-		$back = 'index.php?batch=' . (int) ( $p ? $p['batch_id'] : 0 );
+		$back = 'index.php?tab=catalog&batch=' . (int) ( $p ? $p['batch_id'] : 0 );
 		break;
 
 	case 'pricing_display_set':
 		price_display_mode_set( (string) req( 'mode', 'both' ) );
-		$back = 'index.php#display';
+		$back = 'index.php?tab=storefront#display';
 		break;
 
 	case 'probe_nodes_refresh':
 		nodeprobe()->refresh();
-		$back = 'index.php#nodes';
+		$back = 'index.php?tab=nodes';
 		break;
 
 	// ---- gallery: helpers ----
@@ -142,7 +152,7 @@ switch ( $action ) {
 			$v = req( 'copy_' . $k, null );
 			if ( null !== $v ) { site_copy_set( $k, trim( (string) $v ) ); }
 		}
-		$back = 'index.php?copy=1';
+		$back = 'index.php?tab=storefront&copy=1';
 		break;
 
 	// ---- masthead banner ----
@@ -170,14 +180,14 @@ switch ( $action ) {
 		banner_set( 'scrim', (string) max( 0, min( 100, (int) req( 'scrim', 55 ) ) ) );
 		banner_set( 'text', 'light' === req( 'text', 'dark' ) ? 'light' : 'dark' );
 
-		$back = 'index.php?banner=1#banner';
+		$back = 'index.php?tab=storefront&banner=1#banner';
 		break;
 
 	case 'banner_remove':
 		$old = basename( (string) banner_get( 'file' ) );
 		if ( '' !== $old ) { @unlink( banner_dir() . '/' . $old ); }
 		banner_set( 'file', '' );
-		$back = 'index.php?banner=1#banner';
+		$back = 'index.php?tab=storefront&banner=1#banner';
 		break;
 
 	case 'img_add':
@@ -197,7 +207,7 @@ switch ( $action ) {
 			}
 			sync_main_image( $store, $pid );
 		}
-		$back = 'index.php?batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . $pid;
+		$back = 'index.php?tab=catalog&batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . $pid;
 		break;
 
 	case 'image_main':   // legacy alias
@@ -210,7 +220,7 @@ switch ( $action ) {
 			renumber_images( $store, $pid );
 			sync_main_image( $store, $pid );
 		}
-		$back = 'index.php?batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
+		$back = 'index.php?tab=catalog&batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
 		break;
 
 	case 'img_move':   // dir = up | down
@@ -231,7 +241,7 @@ switch ( $action ) {
 				sync_main_image( $store, $pid );
 			}
 		}
-		$back = 'index.php?batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
+		$back = 'index.php?tab=catalog&batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
 		break;
 
 	case 'image_delete': // legacy alias
@@ -249,7 +259,7 @@ switch ( $action ) {
 			renumber_images( $store, $pid );
 			sync_main_image( $store, $pid );
 		}
-		$back = 'index.php?batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
+		$back = 'index.php?tab=catalog&batch=' . (int) req( 'batch_id', 0 ) . '&edit=' . (int) ( $img['product_id'] ?? 0 );
 		break;
 
 	case 'product_active':
@@ -270,7 +280,7 @@ switch ( $action ) {
 		$hasOrders = (int) $store->one( 'SELECT COUNT(*) AS c FROM orders WHERE product_id=?', array( $pid ) )['c'];
 		if ( $hasOrders > 0 ) {
 			$store->q( 'UPDATE products SET active=0 WHERE id=?', array( $pid ) );
-			$back = 'index.php?msg=hidden';
+			$back = 'index.php?tab=catalog&msg=hidden';
 			break;
 		}
 		if ( $p['image'] !== '' ) { delete_image_file( $p['image'] ); }
@@ -279,7 +289,7 @@ switch ( $action ) {
 		}
 		$store->q( 'DELETE FROM product_images WHERE product_id=?', array( $pid ) );
 		$store->q( 'DELETE FROM products WHERE id=?', array( $pid ) );
-		$back = 'index.php?msg=deleted';
+		$back = 'index.php?tab=catalog&msg=deleted';
 		break;
 
 	case 'order_ship':

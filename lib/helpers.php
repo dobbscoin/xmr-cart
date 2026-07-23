@@ -205,6 +205,16 @@ function store_name() {
 	return (string) Config::get( 'store_name', 'XMR Shop' );
 }
 
+/**
+ * Render a transaction id as a link to a public block explorer.
+ * Falls back to a bare truncated id for demo/simulator txids.
+ */
+function explorer_tx( $txid, $network = 'mainnet' ) {
+	if ( $txid === '' || strpos( $txid, 'demo' ) === 0 ) { return h( substr( $txid, 0, 10 ) ); }
+	$base = 'mainnet' === $network ? 'https://xmrchain.net/tx/' : 'https://stagenet.xmrchain.net/tx/';
+	return '<a href="' . h( $base . $txid ) . '" target="_blank" rel="noopener noreferrer">' . h( substr( $txid, 0, 10 ) ) . '…</a>';
+}
+
 function site_copy( $key ) {
 	static $cache = null;
 	if ( null === $cache ) {
