@@ -151,3 +151,103 @@ $_source = ( $_kv && trim( (string) $_kv['v'] ) !== '' ) ? 'console' : 'config.p
 		Full nodes only (no <span class="mono">--prune-blockchain</span>).
 	</span>
 </div>
+
+<details class="setup-guide" style="margin-top:18px">
+	<summary>Setting up your own <code>monerod</code></summary>
+	<div class="setup-body">
+		<p class="muted" style="margin-top:8px">
+			Running your own primary is a privacy + reliability upgrade — the node operator
+			you're querying sees which subaddresses your buyers pay. Full copy is in the README;
+			the essentials are below.
+		</p>
+
+		<h4>1. Install</h4>
+<pre class="setup-code" data-copy>sudo apt install monero</pre>
+		<p class="muted" style="font-size:12px;margin-top:2px">Or download the current release from <a href="https://www.getmonero.org/downloads/" target="_blank" rel="noopener">getmonero.org/downloads</a>.</p>
+
+		<h4>2. Minimum startup (same-box: store and node on the same machine)</h4>
+<pre class="setup-code" data-copy>monerod \
+  --data-dir /var/lib/monero \
+  --rpc-bind-ip 127.0.0.1 \
+  --rpc-bind-port 18081 \
+  --non-interactive \
+  --log-file /var/log/monero/monerod.log \
+  --log-level 0</pre>
+
+		<h4>3. Systemd unit</h4>
+		<p class="muted" style="font-size:12px;margin:-2px 0 4px">Drop at <span class="mono">/etc/systemd/system/monerod.service</span>:</p>
+<pre class="setup-code" data-copy>[Unit]
+Description=Monero full node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=monero
+Group=monero
+ExecStart=/usr/bin/monerod \
+  --data-dir /var/lib/monero \
+  --rpc-bind-ip 127.0.0.1 \
+  --rpc-bind-port 18081 \
+  --non-interactive \
+  --log-file /var/log/monero/monerod.log
+Restart=on-failure
+RestartSec=30
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target</pre>
+
+		<h4>4. Enable + start</h4>
+<pre class="setup-code" data-copy>sudo useradd -r -s /usr/sbin/nologin monero || true
+sudo mkdir -p /var/lib/monero /var/log/monero
+sudo chown monero:monero /var/lib/monero /var/log/monero
+sudo systemctl daemon-reload
+sudo systemctl enable --now monerod</pre>
+
+		<p style="margin-top:14px">
+			Point your primary node URL (top of the list above) at
+			<span class="mono">http://127.0.0.1:18081</span>. First sync is 8–48h on a decent VPS;
+			the store keeps working during it and orders just won't settle against blocks the
+			node hasn't seen yet — the chain-status pill will say "syncing".
+		</p>
+
+		<h4 style="color:#e26a6a">Flags NOT to pass</h4>
+		<table style="margin-top:6px">
+			<thead><tr><th style="width:38%">flag</th><th>why not</th></tr></thead>
+			<tbody>
+				<tr>
+					<td class="mono">--prune-blockchain</td>
+					<td>pruned nodes can't serve commitments → the scanner fails <strong>CLOSED</strong> → nothing settles.</td>
+				</tr>
+				<tr>
+					<td class="mono">--restricted-rpc</td>
+					<td>may block <span class="mono">get_transactions</span> with <span class="mono">rct=true</span> and <span class="mono">get_outs</span>, which the scanner needs. If you're also serving public queries, put restricted on a <em>separately</em> bound port.</td>
+				</tr>
+				<tr>
+					<td class="mono">--limit-rate-* (low)</td>
+					<td>scanner does bursty queries at settlement time. Strangling the RPC just delays orders.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</details>
+
+<script>
+(function(){
+	document.querySelectorAll('.setup-code[data-copy]').forEach(function(pre){
+		var btn = document.createElement('button');
+		btn.textContent = 'copy';
+		btn.className = 'copy-btn';
+		btn.type = 'button';
+		btn.addEventListener('click', function(){
+			navigator.clipboard.writeText(pre.textContent.trim()).then(function(){
+				var was = btn.textContent;
+				btn.textContent = 'copied';
+				btn.classList.add('copied');
+				setTimeout(function(){ btn.textContent = was; btn.classList.remove('copied'); }, 1200);
+			});
+		});
+		pre.appendChild(btn);
+	});
+})();
+</script>
