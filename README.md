@@ -47,8 +47,10 @@ sudo chown -R www-data:www-data data/ public/assets/products/ public/assets/bann
 sudo chmod 750 data/ public/assets/products/ public/assets/banner/
 ```
 
-Point a vhost at `public/` and put `admin/` behind a VPN, Tailscale, or
-localhost — the admin passphrase is defense-in-depth, not the primary gate.
+Point a vhost at `public/`. `admin/` is passphrase-gated and works over the
+public internet out of the box — no VPN required to get started. For a shop
+taking real orders, additionally lock admin/ down at the web-server layer:
+see [Hardening the admin](#hardening-the-admin) below.
 
 Wire the cron:
 
@@ -73,13 +75,33 @@ matches an incoming output's amount to what the buyer owes.
 
 ## Security posture
 
-- **Admin console must be behind a VPN, Tailscale, or bound to localhost.**
-  The passphrase is a second line, not a first.
+- **Admin console is passphrase-gated.** The bcrypt hash in `config.php` is
+  the gate; the console works over the public internet out of the box. Pick a
+  strong passphrase and you're covered for a small shop.
 - Buyer PII is scrubbed by `worker/purge_pii.php` after `SHIP_KEEP_DAYS` /
   `DEAD_KEEP_DAYS`. Financial columns are preserved.
 - The store only holds the private VIEW key. Keep the SPEND key on cold
   hardware.
 - `config.php` is git-ignored; do not check it in.
+
+## Hardening the admin
+
+For a shop taking real orders, add a second layer at the web-server level so
+the passphrase form is never even offered from the public internet. Pick one:
+
+- **Bind admin/ to a VPN or Tailscale interface.** In nginx, put the
+  `location /admin/` block in a separate `server` block that listens only on
+  your VPN/tailnet IP (e.g. `listen 100.64.0.1:8089;`). Public 443 stops
+  answering for `/admin/*` entirely.
+- **Bind admin/ to localhost + SSH port-forward.** `listen 127.0.0.1:8089;`
+  and access via `ssh -L 8089:127.0.0.1:8089 your-host`.
+- **HTTP Basic auth in front of the passphrase.** `auth_basic` +
+  `auth_basic_user_file` in the `/admin/` location. Cheapest option, no
+  network reconfig.
+
+Any of these turns the passphrase into a second line of defence, which is
+what you want if the shop earns money. If you're just kicking the tyres —
+the passphrase alone is fine.
 
 ## Brand assets
 

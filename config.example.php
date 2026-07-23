@@ -49,10 +49,13 @@ return array(
 	'price_cache_seconds'=> 120,
 
 	// ---- Admin console ------------------------------------------------------
-	// PRIMARY protection is binding admin/ to your Tailscale interface (or a
-	// VPN, or localhost) in your web server config. This passphrase is
-	// defense-in-depth on top of that. Set a strong one.
+	// The passphrase below is the gate. Pick a strong one.
 	// Generate a hash:  php -r "echo password_hash('your-passphrase', PASSWORD_DEFAULT).PHP_EOL;"
+	//
+	// If you want defense in depth, additionally bind admin/ to a VPN, Tailscale
+	// interface, or localhost in your web-server config so the passphrase is
+	// never even offered a login prompt from the public internet. Recommended
+	// for any shop taking real orders. See README.md § "Hardening the admin".
 	'admin_pass_hash'    => '',                     // password_hash() output; empty = warn loudly
 	'cookie_secret'      => 'CHANGE_ME_TO_A_LONG_RANDOM_STRING',
 
