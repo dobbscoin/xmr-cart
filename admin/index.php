@@ -194,7 +194,7 @@ if ( $missing ) : ?>
 						<div class="thumbs">
 							<?php if ( $p['image'] !== '' ) : ?>
 								<figure class="thumb main">
-									<img src="<?php echo '../public/' . img_url( $p['image'] ); ?>" alt="">
+									<img src="<?php echo '/' . img_url( $p['image'] ); ?>" alt="">
 									<figcaption>main</figcaption>
 								</figure>
 							<?php else : ?>
@@ -203,7 +203,7 @@ if ( $missing ) : ?>
 
 							<?php foreach ( product_gallery( $p['id'] ) as $g ) : ?>
 								<figure class="thumb">
-									<img src="<?php echo '../public/' . img_url( $g['file'] ); ?>" alt="">
+									<img src="<?php echo '/' . img_url( $g['file'] ); ?>" alt="">
 									<figcaption>
 										<form class="inline" method="post" action="actions.php"><?php echo csrf_field(); ?><input type="hidden" name="action" value="image_main"><input type="hidden" name="id" value="<?php echo (int) $g['id']; ?>"><button class="cbtn tiny" title="Make this the main image">main</button></form>
 										<form class="inline" method="post" action="actions.php" onsubmit="return confirm('Delete this photo?')"><?php echo csrf_field(); ?><input type="hidden" name="action" value="image_delete"><input type="hidden" name="id" value="<?php echo (int) $g['id']; ?>"><button class="cbtn tiny warn" title="Delete photo">&times;</button></form>
@@ -270,7 +270,7 @@ if ( $missing ) : ?>
 				<?php foreach ( $editImgs as $ix => $im ) : $isMain = ( 0 === (int) $im['sort'] ); ?>
 					<div style="border:1px solid <?php echo $isMain ? '#ff6600' : '#2a2f38'; ?>;border-radius:4px;overflow:hidden;background:#101115">
 						<div style="position:relative;aspect-ratio:1/1;background:#0b0c0f">
-							<img src="../public/<?php echo h( $uurl . '/' . $im['file'] ); ?>" style="width:100%;height:100%;object-fit:cover" alt="">
+							<img src="/<?php echo h( $uurl . '/' . $im['file'] ); ?>" style="width:100%;height:100%;object-fit:cover" alt="">
 							<?php if ( $isMain ) : ?><span style="position:absolute;top:4px;left:4px;background:#ff6600;color:#fff;font-size:10px;letter-spacing:.1em;padding:2px 6px;border-radius:3px">MAIN</span><?php endif; ?>
 							<span style="position:absolute;top:4px;right:4px;background:#000a;color:#aeb4bf;font-size:10px;padding:2px 6px;border-radius:3px"><?php echo (int) $im['sort'] + 1; ?></span>
 						</div>

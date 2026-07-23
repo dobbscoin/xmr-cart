@@ -11,8 +11,8 @@ function console_head( $title, $envReal ) {
 	echo '<!doctype html><html lang="en"><head><meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
 	echo '<title>' . h( $title ) . ' · ' . h( store_name() ) . ' console</title>';
-	echo '<link rel="icon" href="../public/assets/brand/favicon-32.png" type="image/png">';
-	echo '<link rel="stylesheet" href="../public/assets/style.css"></head><body class="console">';
+	echo '<link rel="icon" href="/assets/brand/favicon-32.png" type="image/png">';
+	echo '<link rel="stylesheet" href="/assets/style.css"></head><body class="console">';
 	echo '<div class="bar"><span class="t">' . h( store_name() ) . ' console</span>';
 	echo '<span class="env' . ( $envReal ? '' : ' demo' ) . '">' . ( $envReal ? 'LIVE NODE' : 'DEMO MODE' ) . '</span>';
 	echo '<span class="spacer"></span>';
