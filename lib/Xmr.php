@@ -54,6 +54,14 @@ class Xmr {
 		return $this->scanner->verify_keys( $this->address, $this->view );
 	}
 
+	/**
+	 * Same check against an arbitrary pair — used by the first-run wizard and
+	 * the Wallet tab to validate values BEFORE writing them into kv/config.
+	 */
+	public function verifyKeysPair( $address, $view_key ) {
+		return $this->scanner->verify_keys( (string) $address, (string) $view_key );
+	}
+
 	/** Per-order subaddress string for account 0, index $minor. */
 	public function subaddress( $minor ) {
 		$r = $this->scanner->subaddress( 0, (int) $minor, $this->view, $this->address );
