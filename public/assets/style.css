@@ -284,6 +284,12 @@ body.console a{color:#e0a074}
 
 /* footer: centered, full width — line breaks are set by hand in the console */
 .footer .wrap{text-align:center;line-height:1.6}
+.footer .footer-note{margin-bottom:10px}
+.footer .footer-legal{font-size:11.5px;color:var(--pewter);letter-spacing:.02em;opacity:.85}
+.footer .footer-legal a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;padding-bottom:1px}
+.footer .footer-legal a:hover{color:var(--ink-soft);border-bottom-style:solid}
+.footer .footer-legal .sep{opacity:.5;margin:0 4px}
+.footer .footer-legal .mit{opacity:.7;font-variant:small-caps;letter-spacing:.06em;margin-left:2px}
 
 /* multiple live batches, stacked */
 .batch + .batch, .batch-next{margin-top:46px}
