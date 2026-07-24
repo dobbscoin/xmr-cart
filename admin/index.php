@@ -12,7 +12,7 @@ if ( $tab === '' ) {
 	if ( req( 'edit', '' ) !== '' || req( 'batch', '' ) !== '' ) { $tab = 'catalog'; }
 	else { $tab = 'orders'; }
 }
-$valid = array( 'orders', 'catalog', 'storefront', 'nodes' );
+$valid = array( 'orders', 'catalog', 'storefront', 'nodes', 'wallet' );
 if ( ! in_array( $tab, $valid, true ) ) { $tab = 'orders'; }
 
 // Tab counts for badges
@@ -25,6 +25,7 @@ $_labels = array(
 	'catalog'    => 'Catalog',
 	'storefront' => 'Storefront',
 	'nodes'      => 'Nodes',
+	'wallet'     => 'Wallet',
 );
 ?>
 <nav class="tabs">
