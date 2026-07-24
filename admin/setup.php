@@ -16,6 +16,46 @@ require_once __DIR__ . '/inc.php';
 
 if ( Auth::passSet() ) { redirect( 'login.php' ); }
 
+// ---- Preflight: PHP extension gate ----
+// The scanner (Config::configured -> Xmr -> XmrPay_Scanner) needs bcmath for
+// base58 decoding + gmp for RCT/ed25519 math. If they're missing, decode_address
+// throws "undefined function bcdiv" internally and the setup wizard's crypto
+// validator silently returns "bad checksum" — actively misleading. Refuse to
+// render the form until deps are green.
+$_missing = xmr()->missingExtensions();
+if ( $_missing ) {
+	$_pv    = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+	$_pkgs  = implode( ' ', array_map( function ( $e ) use ( $_pv ) { return "php{$_pv}-{$e}"; }, $_missing ) );
+
+	console_head( 'First-run setup', xmr()->isReal() );
+	?>
+	<div class="panel2" style="max-width:620px;margin:6vh auto">
+		<h2 style="margin-top:0;border:none">Install a few PHP extensions first</h2>
+		<p style="font-size:14px">Before you set up your store, this server needs a couple of PHP extensions the payment scanner depends on. Once they're installed, refresh this page.</p>
+		<div class="loud"><strong>Missing:</strong> <span class="mono"><?php echo h( implode( ', ', $_missing ) ); ?></span></div>
+
+		<h3 style="font-family:var(--serif);color:#eceef1;font-size:15px;margin:18px 0 4px">Debian / Ubuntu</h3>
+		<pre class="setup-code" style="background:#0e0f13;padding:10px;border-radius:6px;font-size:12px;overflow-x:auto"><?php echo h( "sudo apt install {$_pkgs}\nsudo systemctl reload php{$_pv}-fpm" ); ?></pre>
+
+		<h3 style="font-family:var(--serif);color:#eceef1;font-size:15px;margin:18px 0 4px">RHEL / Rocky / Alma</h3>
+		<pre class="setup-code" style="background:#0e0f13;padding:10px;border-radius:6px;font-size:12px;overflow-x:auto"><?php echo h( 'sudo dnf install ' . implode( ' ', array_map( function ( $e ) { return "php-{$e}"; }, $_missing ) ) . "\nsudo systemctl reload php-fpm" ); ?></pre>
+
+		<p class="muted" style="font-size:12px;margin-top:16px">
+			<strong>Why these?</strong> <span class="mono">bcmath</span> is used by the base58 address decoder;
+			<span class="mono">gmp</span> is used for ed25519 point math + RingCT amount decoding.
+			<span class="mono">mbstring</span> / <span class="mono">pdo_sqlite</span> / <span class="mono">curl</span>
+			are used for I/O and text handling. All are standard packages in every mainstream distro.
+		</p>
+
+		<form method="get" style="margin-top:14px">
+			<button class="cbtn go" type="submit">Recheck</button>
+		</form>
+	</div>
+	<?php
+	console_foot();
+	exit;
+}
+
 $err  = '';
 $vals = array( 'address' => '', 'viewkey' => '' );
 
