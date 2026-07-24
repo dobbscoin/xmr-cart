@@ -148,6 +148,21 @@ $uurl = rtrim( (string) Config::get( 'uploads_url', 'assets/products' ), '/' );
 				<button class="cbtn go">Create batch</button>
 			</form>
 		</div>
+
+		<?php
+		$_hasDemoBatch = (bool) $store->one( "SELECT id FROM batches WHERE name='Demo' LIMIT 1" );
+		if ( ! $_hasDemoBatch ) :
+		?>
+		<div class="panel2" style="margin-top:10px">
+			<div style="font-size:13px;color:#eceef1;margin-bottom:6px">Nothing to sell yet?</div>
+			<p class="muted" style="font-size:12px;margin:0 0 8px">Drop in three <strong>DEMO</strong> products (Sticker / Hat / Coffee) to click through the buyer flow. Editable or deletable at any time.</p>
+			<form method="post" action="actions.php">
+				<?php echo csrf_field(); ?>
+				<input type="hidden" name="action" value="seed_demo">
+				<button class="cbtn">Seed demo products</button>
+			</form>
+		</div>
+		<?php endif; ?>
 	</div>
 
 	<div>

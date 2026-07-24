@@ -28,6 +28,16 @@ switch ( $action ) {
 		}
 		break;
 
+	case 'seed_demo':
+		// Idempotent one-shot: adds a "Demo" batch + 3 placeholder products
+		// (DEMO — Sticker / Hat / Coffee). Refuses if a Demo batch already
+		// exists so re-clicking is safe. See seed_demo_products() in
+		// lib/catalog.php for details.
+		$r = seed_demo_products();
+		$back = 'index.php?tab=catalog';
+		if ( $r === 'exists' ) { $back .= '&msg=demo_exists'; }
+		break;
+
 	case 'rename_batch':
 		$id   = (int) req( 'id', 0 );
 		$name = trim( (string) req( 'name', '' ) );

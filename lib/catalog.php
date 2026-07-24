@@ -63,3 +63,47 @@ function product_gallery( $id ) {
 function img_url( $file ) {
 	return $file !== '' ? h( Config::get( 'uploads_url', 'assets/products' ) . '/' . $file ) : '';
 }
+
+/**
+ * Seed the catalog with one "Demo" batch + three placeholder products so a
+ * first-time operator lands on a browsable storefront instead of empty state.
+ * Called from the first-run wizard (opt-in checkbox) and the Catalog tab's
+ * "Seed demo products" button.
+ *
+ * Idempotency: refuses if a batch named exactly "Demo" already exists.
+ * That lets an operator with real inventory click the button and get seeded
+ * without duplication, and lets them click it more than once safely.
+ *
+ * Returns:
+ *   true       — inserted 1 batch + 3 products
+ *   'exists'   — a "Demo" batch already exists, nothing changed
+ */
+function seed_demo_products() {
+	$s = store();
+	$dupe = $s->one( "SELECT id FROM batches WHERE name='Demo' LIMIT 1" );
+	if ( $dupe ) { return 'exists'; }
+	$now = time();
+	$s->q(
+		'INSERT INTO batches(name, status, created_at, sort, description) VALUES(?,?,?,?,?)',
+		array(
+			'Demo',
+			'live',
+			$now,
+			0,
+			'Example batch. Delete or hide it from the Catalog tab when you\'re ready to sell for real.',
+		)
+	);
+	$batch_id = (int) $s->db->lastInsertId();
+	$rows = array(
+		array( 'DEMO — Sticker', 'Peel-and-stick vinyl.',        'One low-friction thing to test the buyer flow with.',                       3.00,   500, 0 ),
+		array( 'DEMO — Hat',     'Six-panel, embroidered logo.', 'Mid-range item to try a bigger checkout amount.',                          25.00,  12,  1 ),
+		array( 'DEMO — Coffee',  'Single-origin, 12oz bag.',     'Consumable good — good for testing stock decrement + fulfillment.',        18.00,  24,  2 ),
+	);
+	foreach ( $rows as $r ) {
+		$s->q(
+			'INSERT INTO products(batch_id, sku, name, subhead, description, image, price_fiat, stock, active, sort, created_at) VALUES(?,?,?,?,?,?,?,?,1,?,?)',
+			array( $batch_id, '', $r[0], $r[1], $r[2], '', $r[3], $r[4], $r[5], $now )
+		);
+	}
+	return true;
+}

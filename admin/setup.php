@@ -56,45 +56,7 @@ if ( $_missing ) {
 	exit;
 }
 
-/**
- * Insert one Demo batch + 3 example products so a first-time operator lands
- * on a clickable, browseable storefront instead of an empty catalog. Called
- * only from the setup wizard when the operator leaves the "Seed with example
- * products" box checked (which is the default).
- *
- * Idempotency: refuses to seed if any batches already exist. So a user who
- * resets the passphrase mid-life and re-runs setup won't accidentally get
- * DEMO products dumped into their real inventory.
- */
-function xmrcart_seed_demo_products() {
-	$s = store();
-	$existing = (int) $s->one( 'SELECT COUNT(*) c FROM batches' )['c'];
-	if ( $existing > 0 ) { return false; }
-	$now = time();
-	$s->q(
-		'INSERT INTO batches(name, status, created_at, sort, description) VALUES(?,?,?,?,?)',
-		array(
-			'Demo',
-			'live',
-			$now,
-			0,
-			'Example batch created by the first-run wizard. Delete or hide it from the Catalog tab when you\'re ready to sell for real.',
-		)
-	);
-	$batch_id = (int) $s->db->lastInsertId();
-	$rows = array(
-		array( 'DEMO — Sticker', 'Peel-and-stick vinyl.',        'One low-friction thing to test the buyer flow with.',        3.00,   500, 0 ),
-		array( 'DEMO — Hat',     'Six-panel, embroidered logo.', 'Mid-range item to try a bigger checkout amount.',           25.00,  12,  1 ),
-		array( 'DEMO — Coffee',  'Single-origin, 12oz bag.',     'Consumable good — good for testing stock decrement + fulfillment.', 18.00, 24, 2 ),
-	);
-	foreach ( $rows as $r ) {
-		$s->q(
-			'INSERT INTO products(batch_id, sku, name, subhead, description, image, price_fiat, stock, active, sort, created_at) VALUES(?,?,?,?,?,?,?,?,1,?,?)',
-			array( $batch_id, '', $r[0], $r[1], $r[2], '', $r[3], $r[4], $r[5], $now )
-		);
-	}
-	return true;
-}
+// seed_demo_products() lives in lib/catalog.php (shared with the Catalog tab).
 
 $err  = '';
 $vals = array( 'address' => '', 'viewkey' => '', 'seed' => true );
@@ -137,7 +99,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 			store()->kvSet( 'wallet_primary_address', $address );
 			store()->kvSet( 'wallet_view_key',        strtolower( $viewkey ) );
 		}
-		if ( $seed ) { xmrcart_seed_demo_products(); }
+		if ( $seed ) { seed_demo_products(); }
 		redirect( 'login.php' );
 	}
 }
