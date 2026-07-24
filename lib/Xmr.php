@@ -16,8 +16,8 @@ class Xmr {
 	private $network;
 
 	public function __construct() {
-		$this->address = (string) Config::get( 'primary_address', '' );
-		$this->view    = (string) Config::get( 'view_key', '' );
+		$this->address = Config::primaryAddress();
+		$this->view    = Config::viewKey();
 		$this->network = (string) Config::get( 'network', 'mainnet' );
 
 		$dir     = __DIR__ . '/scanner';
