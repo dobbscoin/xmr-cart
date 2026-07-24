@@ -14,7 +14,7 @@ $action = (string) req( 'action', '' );
 // Storefront, etc., without threading a hidden tab field through every form.
 $_refTab = 'orders';
 $_ref    = (string) ( $_SERVER['HTTP_REFERER'] ?? '' );
-if ( $_ref && preg_match( '/[?&]tab=(orders|catalog|storefront|nodes)/', $_ref, $_m ) ) {
+if ( $_ref && preg_match( '/[?&]tab=(orders|catalog|storefront|nodes|wallet)/', $_ref, $_m ) ) {
 	$_refTab = $_m[1];
 }
 $back = 'index.php?tab=' . $_refTab;
@@ -189,6 +189,55 @@ switch ( $action ) {
 		$store->q( "DELETE FROM kv WHERE k='nodes_override'" );
 		nodeprobe()->refresh();
 		$back = 'index.php?tab=nodes';
+		break;
+
+	// ---- wallet identity (kv-override; Config::primaryAddress/viewKey read this) ----
+	case 'wallet_save':
+		{
+			$address = trim( (string) req( 'primary_address', '' ) );
+			$viewkey = trim( (string) req( 'view_key', '' ) );
+			$confirm = (string) req( 'confirm_pass', '' );
+			$msg     = '';
+
+			// Elevated action — re-enter passphrase. Even though the operator's
+			// already authed via cookie, wallet identity is the one edit that
+			// lets an admin-compromise silently redirect real money. Cutting
+			// the compromised-cookie attack in half is worth 5 seconds of
+			// friction for a change that should happen ~once.
+			if ( ! password_verify( $confirm, trim( (string) ( store()->kvGet( 'admin_pass_hash' )['v'] ?? Config::get( 'admin_pass_hash', '' ) ) ) ) ) {
+				$msg = 'wrong_pass';
+			} elseif ( $address === '' || $viewkey === '' ) {
+				$msg = 'missing';
+			} elseif ( strlen( $address ) !== 95 || $address[0] !== '4' ) {
+				$msg = 'bad_address';
+			} elseif ( ! preg_match( '/^[0-9a-fA-F]{64}$/', $viewkey ) ) {
+				$msg = 'bad_viewkey';
+			} else {
+				$check = xmr()->verifyKeysPair( $address, $viewkey );
+				if ( empty( $check['address_valid'] ) )      { $msg = 'bad_address'; }
+				elseif ( empty( $check['key_match'] ) )      { $msg = 'mismatch'; }
+			}
+
+			if ( $msg === '' ) {
+				$store->kvSet( 'wallet_primary_address', $address );
+				$store->kvSet( 'wallet_view_key',        strtolower( $viewkey ) );
+				$back = 'index.php?tab=wallet&saved=1';
+			} else {
+				$back = 'index.php?tab=wallet&err=' . urlencode( $msg );
+			}
+		}
+		break;
+
+	case 'wallet_revert':
+		{
+			$confirm = (string) req( 'confirm_pass', '' );
+			if ( ! password_verify( $confirm, trim( (string) ( store()->kvGet( 'admin_pass_hash' )['v'] ?? Config::get( 'admin_pass_hash', '' ) ) ) ) ) {
+				$back = 'index.php?tab=wallet&err=wrong_pass';
+			} else {
+				$store->q( "DELETE FROM kv WHERE k IN ('wallet_primary_address','wallet_view_key')" );
+				$back = 'index.php?tab=wallet&reverted=1';
+			}
+		}
 		break;
 
 	// ---- gallery: helpers ----
