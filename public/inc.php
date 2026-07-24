@@ -59,7 +59,19 @@ function store_head( $title ) {
 }
 function store_foot() {
 	$foot = trim( site_copy( 'footer' ) );
-	echo '</main><footer class="footer"><div class="wrap">' . nl2br( h( $foot ) ) . '</div></footer></body></html>';
+	$year = date( 'Y' );
+	$name = h( store_name() );
+	echo '</main><footer class="footer"><div class="wrap">';
+	if ( '' !== $foot ) {
+		echo '<div class="footer-note">' . nl2br( h( $foot ) ) . '</div>';
+	}
+	echo '<div class="footer-legal">'
+		. '&copy; ' . $year . ' ' . $name
+		. ' <span class="sep">&middot;</span> '
+		. 'Built on <a href="https://github.com/SubGeniusFinance/xmr-cart" rel="noopener">xmr-cart</a> '
+		. '<span class="mit">(MIT)</span>'
+		. '</div>';
+	echo '</div></footer></body></html>';
 }
 // Catalog helpers (active_batch, live_products, find_product, product_img_url, pill)
 // live in lib/catalog.php so the admin console can use them too.
