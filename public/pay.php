@@ -22,6 +22,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && req( 'action' ) === 'demo_pay' && 
 }
 
 $cur     = strtoupper( $order['currency'] );
+$items   = order_items( $order['id'] );
 $minc    = (int) Config::get( 'min_confirmations', 10 );
 $uri     = 'monero:' . $order['subaddress'] . '?tx_amount=' . $order['xmr_amount'] . '&tx_description=' . rawurlencode( store_name() . ' order ' . substr( $token, 0, 8 ) );
 $demo    = ! xmr()->isReal();
@@ -31,6 +32,7 @@ $demo    = ! xmr()->isReal();
 // so the buyer would simply lose it. See NOTES.md.
 $dead = in_array( $order['status'], array( 'expired', 'cancelled' ), true );
 
+csrf_token(); // set the cookie before any output (demo form)
 store_head( 'Complete payment' );
 
 if ( $dead ) {
@@ -53,14 +55,23 @@ if ( $dead ) {
 	</div>
 	<div class="meter-cap"><span id="meterlabel">Waiting for payment…</span><span class="mono" id="metercount"></span></div>
 	<div class="inner">
-		<h1><?php echo h( $order['product_name'] ); ?><?php echo (int) $order['qty'] > 1 ? ' ×' . (int) $order['qty'] : ''; ?></h1>
-		<?php $osh = trim( (string) ( $order['product_subhead'] ?? '' ) ); if ( '' !== $osh ) : ?><p class="subhead"><?php echo h( $osh ); ?></p><?php endif; ?>
+		<h1><?php echo h( order_headline( $items ) ); ?></h1>
+		<?php if ( 1 === count( $items ) ) : $osh = trim( (string) $items[0]['product_subhead'] ); if ( '' !== $osh ) : ?><p class="subhead"><?php echo h( $osh ); ?></p><?php endif; endif; ?>
 		<p class="hint" style="margin-top:0">Order <span class="mono"><?php echo h( substr( $token, 0, 8 ) ); ?></span> · status <span id="statuspill"><?php echo pill( $order['status'] ); ?></span></p>
 
 		<?php if ( $demo ) : ?>
 		<div class="notice">Demo mode — no live Monero node is attached. The address below is a placeholder. Use “Simulate payment” to watch the order settle.</div>
 		<?php endif; ?>
 
+		<?php if ( count( $items ) > 1 ) : ?>
+		<div class="order-items">
+			<?php foreach ( $items as $it ) : $ish = trim( (string) $it['product_subhead'] ); ?>
+			<div class="rowline"><span><?php echo h( $it['product_name'] ); ?><?php echo (int) $it['qty'] > 1 ? ' ×' . (int) $it['qty'] : ''; ?>
+				<?php if ( '' !== $ish ) : ?><span class="item-sub"><?php echo h( $ish ); ?></span><?php endif; ?></span>
+				<span class="v"><?php echo h( number_format( (float) $it['line_fiat'], 2 ) . ' ' . $cur ); ?></span></div>
+			<?php endforeach; ?>
+		</div>
+		<?php endif; ?>
 		<div class="rowline"><span>Send exactly</span><span class="big-value"><?php echo h( $order['xmr_amount'] ); ?> XMR</span></div>
 		<div class="rowline"><span>Order total</span><span class="v"><?php echo h( number_format( (float) $order['price_fiat'], 2 ) . ' ' . $cur ); ?></span></div>
 		<div class="rowline"><span>Locked rate</span><span class="v">1 XMR = <?php echo h( number_format( (float) $order['xmr_rate'], 2 ) . ' ' . $cur ); ?></span></div>

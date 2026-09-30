@@ -129,19 +129,27 @@ function settle_order( Store $store, Xmr $xmr, array $order, $tip = null ) {
 	} else {
 		// nothing credited yet — expire an untouched order past its quote window.
 		if ( now() > (int) $order['expires_at'] ) {
-			$new = 'expired';
-			$store->q( 'UPDATE products SET stock = stock + ? WHERE id = ?', array( (int) $order['qty'], (int) $order['product_id'] ) ); // release reservation
+			// Status change + stock release in one guarded transaction. If an admin
+			// cancelled it since we read the row, they already released the stock.
+			order_close_and_release( $order['id'], 'expired' );
+			$row = $store->one( 'SELECT status FROM orders WHERE id=?', array( $order['id'] ) );
+			return $row ? $row['status'] : $status;
 		}
 	}
 
 	$paidAt = ( 'paid' === $new && 'paid' !== $status ) ? now() : ( isset( $order['paid_at'] ) ? $order['paid_at'] : null );
-	$store->q(
-		'UPDATE orders SET status=?, received_pico=?, confirmations=?, txids=?, paid_at=? WHERE id=?',
+	$upd = $store->q(
+		"UPDATE orders SET status=?, received_pico=?, confirmations=?, txids=?, paid_at=? WHERE id=? AND status IN ('pending','confirming')",
 		// received_pico is a DISPLAY figure: what has actually landed on-chain (confirmed +
 		// still-maturing). The paid/unpaid decision above uses confirmed_pico only, so an
 		// immature output can never settle an order — it just stops the UI reading "0".
+		// The status guard: an order cancelled since we read it stays cancelled.
 		array( $new, $v['seen_pico'], (int) $v['confirmations'], implode( ',', $v['txids'] ), $paidAt, $order['id'] )
 	);
+	if ( $upd->rowCount() < 1 ) {
+		$row = $store->one( 'SELECT status FROM orders WHERE id=?', array( $order['id'] ) );
+		return $row ? $row['status'] : $status;
+	}
 	// Fired exactly once, on the pending->paid edge ($paidAt is only set on that tick).
 	if ( 'paid' === $new && 'paid' !== $status ) {
 		$fresh = $store->one( 'SELECT * FROM orders WHERE id=?', array( $order['id'] ) );

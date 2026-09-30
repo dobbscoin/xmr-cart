@@ -56,6 +56,8 @@ function store_head( $title ) {
 	}
 	echo '</div>';
 	echo '</div></header><main class="wrap">';
+	// Cart link: filled in and shown by assets/cart.js when the cart isn't empty.
+	echo '<div class="cartbar"><a id="cartbar" href="cart.php" hidden>Cart · <span class="n">0</span></a></div>';
 }
 function store_foot() {
 	$foot = trim( site_copy( 'footer' ) );
@@ -71,7 +73,44 @@ function store_foot() {
 		. 'Built on <a href="https://github.com/SubGeniusFinance/xmr-cart" rel="noopener">xmr-cart</a> '
 		. '<span class="mit">(MIT)</span>'
 		. '</div>';
-	echo '</div></footer></body></html>';
+	echo '</div></footer>';
+	$jsv = @filemtime( __DIR__ . '/assets/cart.js' ) ?: time();
+	echo '<script src="assets/cart.js?v=' . $jsv . '"></script>';
+	echo '</body></html>';
 }
 // Catalog helpers (active_batch, live_products, find_product, product_img_url, pill)
 // live in lib/catalog.php so the admin console can use them too.
+
+/** Name / email / address / phone fields shared by the Buy form and the cart. */
+function ship_fields_html() {
+	ob_start(); ?>
+	<div class="field">
+		<label for="ship_name">Name <span class="req">*</span></label>
+		<input id="ship_name" name="ship_name" type="text" autocomplete="name" maxlength="120" required
+		       placeholder="Who the order is going to">
+	</div>
+
+	<div class="field">
+		<label for="ship_email">Email <span class="req">*</span></label>
+		<input id="ship_email" name="ship_email" type="email" autocomplete="email" maxlength="180" required
+		       placeholder="you@example.com">
+		<div class="hint">Used only to reach you about this order.</div>
+	</div>
+
+	<div class="field">
+		<label for="ship_addr">Shipping address <span class="req">*</span></label>
+		<textarea id="ship_addr" name="ship_addr" rows="5" maxlength="600" required
+		          autocomplete="street-address"
+		          placeholder="Street&#10;City, State / Region&#10;Postcode&#10;Country"></textarea>
+		<div class="hint">However your post office likes it. Line breaks are kept.</div>
+	</div>
+
+	<div class="field">
+		<label for="ship_phone">Phone <span class="muted">(optional)</span></label>
+		<input id="ship_phone" name="ship_phone" type="tel" autocomplete="tel" maxlength="40"
+		       placeholder="Only if your courier needs it">
+		<span class="hint">Stored only to fulfil your order.</span>
+	</div>
+<?php
+	return ob_get_clean();
+}

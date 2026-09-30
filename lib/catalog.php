@@ -31,6 +31,90 @@ function live_products() {
 function find_product( $id ) {
 	return store()->one( 'SELECT * FROM products WHERE id=? AND active=1', array( (int) $id ) );
 }
+/**
+ * A product that can be ordered right now: active AND in a live batch.
+ * find_product() only checks active=1, which is fine for showing a page but
+ * would let a direct POST check out a closed batch.
+ */
+function find_buyable_product( $id ) {
+	return store()->one(
+		"SELECT p.* FROM products p JOIN batches b ON b.id = p.batch_id
+		  WHERE p.id=? AND p.active=1 AND b.status='live'",
+		array( (int) $id )
+	);
+}
+
+/** Most lines one order may hold. */
+const CART_MAX_LINES = 25;
+
+/**
+ * Parse a cart from the browser: array( product_id => qty ) or "id:qty,id:qty".
+ * Returns a clean array( id => qty ), ids > 0, qty clamped to 1..99, at most
+ * CART_MAX_LINES lines. Says nothing about stock or availability.
+ */
+function cart_parse( $raw ) {
+	if ( is_string( $raw ) ) {
+		$pairs = array();
+		foreach ( explode( ',', $raw ) as $bit ) {
+			$kv = explode( ':', $bit, 2 );
+			if ( 2 === count( $kv ) ) { $pairs[ $kv[0] ] = $kv[1]; }
+		}
+		$raw = $pairs;
+	}
+	$out = array();
+	if ( ! is_array( $raw ) ) { return $out; }
+	foreach ( $raw as $id => $qty ) {
+		$id = (int) $id;
+		if ( $id <= 0 || is_array( $qty ) ) { continue; }
+		$out[ $id ] = max( 1, min( 99, (int) $qty ) );
+		if ( count( $out ) >= CART_MAX_LINES ) { break; }
+	}
+	return $out;
+}
+
+/** Line items of an order, in the order they were added. */
+function order_items( $orderId ) {
+	return store()->all( 'SELECT * FROM order_items WHERE order_id=? ORDER BY id ASC', array( (int) $orderId ) );
+}
+
+/** One-line description of an order: "Name ×2", or "3 items" for a multi-line order. */
+function order_headline( array $items ) {
+	if ( 1 === count( $items ) ) {
+		$i = $items[0];
+		return $i['product_name'] . ( (int) $i['qty'] > 1 ? ' ×' . (int) $i['qty'] : '' );
+	}
+	$units = 0;
+	foreach ( $items as $i ) { $units += (int) $i['qty']; }
+	return $units . ' items';
+}
+
+/**
+ * Move an open order to a closed status (expired / cancelled) and give every
+ * line's stock back, in one transaction. The status guard means two callers
+ * racing (worker expiry vs admin cancel) release the stock exactly once.
+ * Returns true if this call closed the order.
+ */
+function order_close_and_release( $orderId, $newStatus ) {
+	$db = store()->db;
+	$db->exec( 'BEGIN IMMEDIATE' );
+	try {
+		$st = store()->q(
+			"UPDATE orders SET status=? WHERE id=? AND status IN ('pending','confirming')",
+			array( $newStatus, (int) $orderId )
+		);
+		$closed = $st->rowCount() === 1;
+		if ( $closed ) {
+			foreach ( order_items( $orderId ) as $i ) {
+				store()->q( 'UPDATE products SET stock = stock + ? WHERE id = ?', array( (int) $i['qty'], (int) $i['product_id'] ) );
+			}
+		}
+		$db->exec( 'COMMIT' );
+		return $closed;
+	} catch ( \Throwable $e ) {
+		$db->exec( 'ROLLBACK' );
+		throw $e;
+	}
+}
 function product_img_url( $p ) {
 	return $p['image'] !== '' ? h( Config::get( 'uploads_url', 'assets/products' ) . '/' . $p['image'] ) : '';
 }

@@ -362,9 +362,11 @@ function notify_order_paid( $order ) {
 	// Do not "helpfully" add the address back in here.
 	$body  = "An order has been paid and is ready to ship.\n\n";
 	$body .= "Order : #" . (int) $order['id'] . "\n";
-	$body .= "Item  : " . $order['product_name'] . " x" . (int) $order['qty'] . "\n";
-	$osh = trim( (string) ( $order['product_subhead'] ?? '' ) );
-	if ( '' !== $osh ) { $body .= "        " . $osh . "\n"; }
+	foreach ( order_items( $order['id'] ) as $it ) {
+		$body .= "Item  : " . $it['product_name'] . " x" . (int) $it['qty'] . "\n";
+		$osh = trim( (string) $it['product_subhead'] );
+		if ( '' !== $osh ) { $body .= "        " . $osh . "\n"; }
+	}
 	$body .= "Price : " . $cur . " " . number_format( (float) $order['price_fiat'], 2 ) . "\n";
 	$body .= "Paid  : " . $xmr . " XMR\n";
 	$body .= "\nShip-to details are in the console — not emailed, by design.\n";

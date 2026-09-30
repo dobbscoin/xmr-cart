@@ -381,7 +381,10 @@ switch ( $action ) {
 		// Orders keep a permanent reference to the product they were placed against, so a
 		// product that has ever been ordered is HIDDEN, never destroyed. Deleting it would
 		// break the order record (and the DB's foreign key rightly refuses).
-		$hasOrders = (int) $store->one( 'SELECT COUNT(*) AS c FROM orders WHERE product_id=?', array( $pid ) )['c'];
+		$hasOrders = (int) $store->one(
+			'SELECT (SELECT COUNT(*) FROM orders WHERE product_id=?) + (SELECT COUNT(*) FROM order_items WHERE product_id=?) AS c',
+			array( $pid, $pid )
+		)['c'];
 		if ( $hasOrders > 0 ) {
 			$store->q( 'UPDATE products SET active=0 WHERE id=?', array( $pid ) );
 			$back = 'index.php?tab=catalog&msg=hidden';
@@ -401,11 +404,9 @@ switch ( $action ) {
 		break;
 
 	case 'order_cancel':
-		$o = $store->one( 'SELECT * FROM orders WHERE id=?', array( (int) req( 'id', 0 ) ) );
-		if ( $o && ! in_array( $o['status'], array( 'paid', 'shipped' ), true ) ) {
-			$store->q( "UPDATE orders SET status='cancelled' WHERE id=?", array( $o['id'] ) );
-			$store->q( 'UPDATE products SET stock=stock+? WHERE id=?', array( (int) $o['qty'], (int) $o['product_id'] ) ); // release reservation
-		}
+		// Only an open (pending/confirming) order can be cancelled; the guard inside
+		// releases each line's stock exactly once, even racing the worker's expiry.
+		order_close_and_release( (int) req( 'id', 0 ), 'cancelled' );
 		break;
 
 	case 'order_delete':

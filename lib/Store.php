@@ -91,6 +91,40 @@ class Store {
 		$this->addColumnIfMissing( 'orders',   'product_subhead', 'TEXT NOT NULL DEFAULT ""' );
 		$this->addColumnIfMissing( 'batches',  'sort',            'INTEGER NOT NULL DEFAULT 0' );
 		$this->addColumnIfMissing( 'batches',  'description',     'TEXT NOT NULL DEFAULT ""' );
+		// Structured ship-to fields. checkout.php and purge_pii.php have written these for
+		// a while, but nothing created them, so a fresh install couldn't take an order.
+		foreach ( array( 'ship_name', 'ship_email', 'ship_addr', 'ship_phone' ) as $c ) {
+			$this->addColumnIfMissing( 'orders', $c, 'TEXT NOT NULL DEFAULT ""' );
+		}
+
+		// Line items: an order holds one or more products. The orders.product_* / qty
+		// columns stay (NOT NULL, and SQLite can't drop them without a rebuild); new
+		// orders fill them with the first line + total units. order_items is the truth.
+		// Name, subhead and unit price are snapshotted like orders.price_fiat, so a
+		// later catalog edit never rewrites an old order.
+		$this->db->exec(
+			'CREATE TABLE IF NOT EXISTS order_items (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+				product_id INTEGER NOT NULL REFERENCES products(id),
+				product_name TEXT NOT NULL,
+				product_subhead TEXT NOT NULL DEFAULT "",
+				sku TEXT NOT NULL DEFAULT "",
+				qty INTEGER NOT NULL,
+				unit_fiat REAL NOT NULL,
+				line_fiat REAL NOT NULL
+			);
+			CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+			CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);'
+		);
+		// Backfill pre-cart orders: one line from the order's own columns. Idempotent.
+		$this->db->exec(
+			'INSERT INTO order_items (order_id,product_id,product_name,product_subhead,sku,qty,unit_fiat,line_fiat)
+			 SELECT o.id, o.product_id, o.product_name, o.product_subhead, COALESCE(p.sku, ""), o.qty,
+			        ROUND(o.price_fiat / MAX(o.qty, 1), 2), o.price_fiat
+			   FROM orders o LEFT JOIN products p ON p.id = o.product_id
+			  WHERE NOT EXISTS (SELECT 1 FROM order_items i WHERE i.order_id = o.id)'
+		);
 	}
 
 	private function addColumnIfMissing( $table, $col, $decl ) {

@@ -13,6 +13,7 @@ $estXmr = $rate > 0 ? fiat_to_xmr_display( $eff, $rate ) : null;
 $disp = price_display_mode();
 $gallery = product_gallery( $p['id'] );
 
+csrf_token(); // set the cookie before any output, or the form's token has nothing behind it
 store_head( $p['name'] );
 ?>
 <p><a href="index.php" style="font-size:13px">← Back to catalog</a></p>
@@ -61,33 +62,13 @@ store_head( $p['name'] );
 					<?php for ( $i = 1; $i <= min( 10, (int) $p['stock'] ); $i++ ) echo '<option>' . $i . '</option>'; ?>
 				</select>
 			</div>
-			<div class="field">
-				<label for="ship_name">Name <span class="req">*</span></label>
-				<input id="ship_name" name="ship_name" type="text" autocomplete="name" maxlength="120" required
-				       placeholder="Who the order is going to">
+			<div class="addcart-row">
+				<button class="btn ghost block" type="button" id="addcart" hidden
+				        data-id="<?php echo (int) $p['id']; ?>" data-stock="<?php echo (int) $p['stock']; ?>">Add to cart</button>
+				<p class="hint" id="addcart-msg" hidden></p>
+				<p class="hint addcart-or" hidden>Or buy just this one now:</p>
 			</div>
-
-			<div class="field">
-				<label for="ship_email">Email <span class="req">*</span></label>
-				<input id="ship_email" name="ship_email" type="email" autocomplete="email" maxlength="180" required
-				       placeholder="you@example.com">
-				<div class="hint">Used only to reach you about this order.</div>
-			</div>
-
-			<div class="field">
-				<label for="ship_addr">Shipping address <span class="req">*</span></label>
-				<textarea id="ship_addr" name="ship_addr" rows="5" maxlength="600" required
-				          autocomplete="street-address"
-				          placeholder="Street&#10;City, State / Region&#10;Postcode&#10;Country"></textarea>
-				<div class="hint">However your post office likes it. Line breaks are kept.</div>
-			</div>
-
-			<div class="field">
-				<label for="ship_phone">Phone <span class="muted">(optional)</span></label>
-				<input id="ship_phone" name="ship_phone" type="tel" autocomplete="tel" maxlength="40"
-				       placeholder="Only if your courier needs it">
-				<span class="hint">Stored only to fulfil your order.</span>
-			</div>
+			<?php echo ship_fields_html(); ?>
 			<button class="btn block" type="submit"<?php echo $rate > 0 ? '' : ' disabled'; ?>>
 				<?php echo $rate > 0 ? 'Place order & get payment address' : 'Pricing temporarily unavailable'; ?>
 			</button>

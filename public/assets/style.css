@@ -403,3 +403,30 @@ body.console a{color:#e0a074}
                                     not guessed. Desktop only — mobile stacks and doesn't need it. */
   }
 }
+
+/* ---- cart ------------------------------------------------------------------ */
+.cartbar{display:flex;justify-content:flex-end;margin-top:14px}
+.cartbar a{font-size:13px;font-weight:600;color:#fff;background:var(--struck);padding:5px 12px;
+  border-radius:999px;text-decoration:none}
+.cartbar a:hover{background:#e05c00}
+.cartbar a[hidden]{display:none}
+.addcart-row{margin:4px 0 18px}
+.addcart-row .hint{margin:8px 0 0}
+.addcart-or{border-top:1px dotted var(--line-strong);padding-top:14px}
+.cart-lines{border-top:1px solid var(--line-strong);margin:18px 0 8px}
+.cart-line{display:grid;grid-template-columns:1fr auto auto;gap:6px 18px;align-items:center;
+  padding:12px 0;border-bottom:1px dotted var(--line-strong)}
+.cart-line .cl-name a{font-weight:600;text-decoration:none;color:var(--ink)}
+.cart-line .subhead{font-size:13px;color:var(--ink-soft)}
+.cart-line .hint{font-size:12px;color:var(--pewter)}
+.cart-line .cl-qty{display:flex;align-items:center;gap:10px}
+.cart-line .cl-total{text-align:right;min-width:7em}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:13px;color:var(--struck-ink);
+  text-decoration:underline;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:560px){
+  .cart-line{grid-template-columns:1fr auto}
+  .cart-line .cl-name{grid-column:1 / -1}
+}
+.order-items{margin:10px 0 6px}
+.order-items .item-sub{display:block;font-size:12px;color:var(--pewter)}

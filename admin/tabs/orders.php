@@ -16,7 +16,7 @@ if ( ! defined( 'XMRCART_ADMIN' ) ) { die( 'no direct access' ); }
 		$firstTx = strtok( (string) $o['txids'], ',' ); ?>
 		<tr>
 			<td class="mono muted" title="<?php echo h( $o['token'] ); ?>"><?php echo (int) $o['id']; ?></td>
-			<td><?php echo h( $o['product_name'] ); ?><?php echo (int) $o['qty'] > 1 ? ' ×' . (int) $o['qty'] : ''; ?></td>
+			<td><?php foreach ( order_items( $o['id'] ) as $it ) : ?><div><?php echo h( $it['product_name'] ); ?><?php echo (int) $it['qty'] > 1 ? ' ×' . (int) $it['qty'] : ''; ?></div><?php endforeach; ?></td>
 			<td class="mono"><?php echo h( $o['xmr_amount'] ); ?> XMR<div class="muted" style="font-size:11px"><?php echo h( number_format( (float) $o['price_fiat'], 2 ) . ' ' . strtoupper( $o['currency'] ) ); ?></div></td>
 			<td><?php echo pill( $o['status'] ); ?><?php if ( 'confirming' === $o['status'] ) echo '<div class="muted mono" style="font-size:11px">' . (int) $o['confirmations'] . ' conf</div>'; ?></td>
 			<td class="mono"><?php echo h( pico_to_xmr( $o['received_pico'] ) ); ?></td>
