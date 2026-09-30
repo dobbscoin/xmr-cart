@@ -70,7 +70,7 @@ function store_foot() {
 	echo '<div class="footer-legal">'
 		. '&copy; ' . $year . ' ' . $name
 		. ' <span class="sep">&middot;</span> '
-		. 'Built on <a href="https://github.com/SubGeniusFinance/xmr-cart" rel="noopener">xmr-cart</a> '
+		. 'Built on <a href="https://github.com/dobbscoin/xmr-cart" rel="noopener">xmr-cart</a> '
 		. '<span class="mit">(MIT)</span>'
 		. '</div>';
 	echo '</div></footer>';

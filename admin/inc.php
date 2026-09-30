@@ -24,7 +24,7 @@ function console_head( $title, $envReal ) {
 	echo '<a class="cbtn" href="logout.php">Sign out</a></div>';
 	echo '<div class="wrap2">';
 }
-function console_foot() { echo '</div></body></html>'; }
+function console_foot() { echo '</div>'; if (is_file(__DIR__ . '/pwreveal.js')) { echo '<script>' . file_get_contents(__DIR__ . '/pwreveal.js') . '</script>'; } echo '</body></html>'; }
 
 function post_is( $action ) {
 	return $_SERVER['REQUEST_METHOD'] === 'POST' && ( $_POST['action'] ?? '' ) === $action;
