@@ -29,7 +29,7 @@ store_head( '' );
 		<h1 class="lede"><?php echo h( $b['name'] ); ?></h1>
 
 		<?php if ( trim( (string) ( $b['description'] ?? '' ) ) !== '' ) : ?>
-		<p class="batch-note"><?php echo nl2br( h( $b['description'] ) ); ?></p>
+		<p class="batch-note"><?php echo nl2br( linkify( h( $b['description'] ) ) ); ?></p>
 		<?php endif; ?>
 
 		<div class="grid">

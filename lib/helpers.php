@@ -3,6 +3,11 @@
 
 function h( $s ) { return htmlspecialchars( (string) $s, ENT_QUOTES, 'UTF-8' ); }
 
+/** Turn http(s) URLs in ALREADY-ESCAPED text into links. Trailing punctuation stays outside. */
+function linkify( $escaped ) {
+	return preg_replace( '~https?://[^\s<]*[^\s<.,;:!?)\'"]~', '<a href="$0" rel="noopener">$0</a>', $escaped );
+}
+
 function redirect( $url ) { header( 'Location: ' . $url ); exit; }
 
 function json_out( $data, $code = 200 ) {
