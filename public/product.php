@@ -33,7 +33,7 @@ store_head( $p['name'] );
 		<h1><?php echo h( $p['name'] ); ?></h1>
 		<?php $ph = trim( (string) ( $p['subhead'] ?? '' ) ); if ( '' !== $ph ) : ?><p class="subhead"><?php echo h( $ph ); ?></p><?php endif; ?>
 		<?php if ( $p['sku'] !== '' ) : ?><div class="spec" style="margin-bottom:14px"><span class="stamp mono"><?php echo h( $p['sku'] ); ?></span></div><?php endif; ?>
-		<?php if ( $p['description'] !== '' ) : ?><p class="sub"><?php echo nl2br( h( $p['description'] ) ); ?></p><?php endif; ?>
+		<?php if ( $p['description'] !== '' ) : ?><p class="sub"><?php echo nl2br( linkify( h( $p['description'] ) ) ); ?></p><?php endif; ?>
 		<?php $bn = store()->one( 'SELECT description FROM batches WHERE id=?', array( (int) $p['batch_id'] ) ); $bn = trim( (string) ( $bn['description'] ?? '' ) ); ?>
 		<?php if ( '' !== $bn ) : ?><p class="batch-note"><?php echo nl2br( linkify( h( $bn ) ) ); ?></p><?php endif; ?>
 
