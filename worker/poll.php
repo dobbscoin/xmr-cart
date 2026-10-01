@@ -14,7 +14,8 @@ require_once __DIR__ . '/../lib/bootstrap.php';
 require_once __DIR__ . '/../lib/settle.php';
 
 // Single-instance lock so a slow tick never overlaps the next.
-$lock = fopen( sys_get_temp_dir() . '/xmr-shop-poll.lock', 'c' );
+// Named per install, so two stores on one box don't skip each other's ticks.
+$lock = fopen( sys_get_temp_dir() . '/xmr-shop-poll-' . md5( __DIR__ ) . '.lock', 'c' );
 if ( ! $lock || ! flock( $lock, LOCK_EX | LOCK_NB ) ) {
 	fwrite( STDERR, "[" . date( 'c' ) . "] previous poll still running; skipping.\n" );
 	exit( 0 );
