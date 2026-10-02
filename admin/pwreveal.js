@@ -1,10 +1,11 @@
 /*!
- * pwreveal.js -- click-to-decode-asterisks for every password box.
+ * pwreveal.js -- a show/hide eye button for password fields.
  *
- * Drop-in, zero dependencies, zero configuration. Finds every
- * <input type="password"> on the page, including ones added later by script
- * (the subgenius.vip card swaps panes; SMF and Roundcube inject forms), and
- * gives each one an eye button that toggles the masking.
+ * It only flips a field between type="password" and type="text". It never
+ * reads the field's value, never stores it, and never sends anything
+ * anywhere: no network calls, no storage, no cookies. Drop-in, zero
+ * dependencies, zero configuration. Fields added after page load (swapped
+ * panes, forms loaded by script) get the button too.
  *
  * Deliberate choices:
  *  - type="button", so it can never submit the form it sits inside.
@@ -79,7 +80,7 @@
   function attach(input) {
     if (!input || input.getAttribute(MARK) === 'done') return;
     if (input.type !== 'password') return;
-    // A hidden or zero-size box (SMF keeps decoy fields) gets nothing.
+    // A hidden or zero-size box (some apps keep decoy fields) gets nothing.
     if (input.offsetParent === null && input.offsetWidth === 0) return;
     input.setAttribute(MARK, 'done');
 
@@ -137,8 +138,7 @@
     injectCss();
     scan(document);
 
-    // Forms that appear after load: the card's panes, Roundcube dialogs,
-    // SMF's ajax profile editor.
+    // Forms that appear after load: swapped panes, dialogs, ajax editors.
     if (window.MutationObserver) {
       new MutationObserver(function (muts) {
         for (var i = 0; i < muts.length; i++) {
