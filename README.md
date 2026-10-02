@@ -1,3 +1,11 @@
+<!-- home-banner -->
+> ### 🏠 Home is [git.subgenius.finance](https://git.subgenius.finance/SubGeniusFinance/xmr-cart).
+>
+> The GitHub copy is a **mirror, pushed from here**. Open issues and pull requests at home.
+>
+> **Have a fork or a clone?** Point it home with `git remote set-url origin https://git.subgenius.finance/SubGeniusFinance/xmr-cart.git`
+
+---
 # xmr-cart
 
 A small XMR-only checkout for shops that don't want WordPress underneath them.
