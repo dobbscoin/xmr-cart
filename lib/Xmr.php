@@ -62,6 +62,18 @@ class Xmr {
 		return $this->scanner->verify_keys( (string) $address, (string) $view_key );
 	}
 
+	/**
+	 * Can the operator send a refund here? A standard (4..) or subaddress (8..) on THIS
+	 * store's network with a good checksum. Integrated addresses (106 chars) are refused:
+	 * their payment id means nothing for a refund and wallets handle them inconsistently.
+	 */
+	public function refundAddressValid( $address ) {
+		$address = (string) $address;
+		if ( 95 !== strlen( $address ) || ! preg_match( '/^[1-9A-HJ-NP-Za-km-z]+$/', $address ) ) { return false; }
+		if ( method_exists( $this->scanner, 'address_valid' ) ) { return (bool) $this->scanner->address_valid( $address ); }
+		return in_array( $address[0], array( '4', '8', '5', '7', '9', 'A', 'B' ), true );   // mock/demo: shape only
+	}
+
 	/** Per-order subaddress string for account 0, index $minor. */
 	public function subaddress( $minor ) {
 		$r = $this->scanner->subaddress( 0, (int) $minor, $this->view, $this->address );

@@ -113,6 +113,17 @@ function ship_fields_html() {
 		       placeholder="Only if your courier needs it">
 		<span class="hint">Stored only to fulfil your order.</span>
 	</div>
+
+	<div class="field">
+		<label for="return_address">XMR return address <span class="req">*</span></label>
+		<div class="masked-wrap">
+			<input id="return_address" name="return_address" type="text" class="mono masked" required
+			       minlength="95" maxlength="95" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+			       data-lpignore="true" data-1p-ignore placeholder="4… or 8…  (95 characters)">
+			<button type="button" class="reveal" data-reveal="return_address" aria-pressed="false">show</button>
+		</div>
+		<span class="hint">A Monero address of yours. Used only if money has to go back to you: an over- or underpayment, or an order we can't fill.</span>
+	</div>
 <?php
 	return ob_get_clean();
 }

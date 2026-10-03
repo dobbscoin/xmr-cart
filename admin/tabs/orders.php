@@ -34,6 +34,7 @@ if ( ! defined( 'XMRCART_ADMIN' ) ) { die( 'no direct access' ); }
 					<?php if ( '' !== $sp ) : ?><div class="muted mono" style="font-size:11px"><?php echo h( $sp ); ?></div><?php endif; ?>
 					<div class="muted" style="font-size:11.5px;white-space:pre-wrap;margin-top:3px"><?php echo h( $sa ); ?></div>
 				<?php endif; ?>
+				<?php echo refund_block_html( $o ); ?>
 			</td>
 			<td class="mono" style="font-size:12px"><?php echo $firstTx ? explorer_tx( $firstTx, Config::get( 'network', 'mainnet' ) ) : '—'; ?></td>
 			<td style="white-space:nowrap">

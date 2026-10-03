@@ -71,6 +71,38 @@ function xmr_to_pico( $xmr ) {
 }
 
 /** Exact piconero string -> canonical XMR string (trailing zeros trimmed). */
+/**
+ * Piconero owed back to the buyer: the excess on a paid/shipped order, or everything
+ * received on an expired/cancelled one. '0' when nothing is owed.
+ */
+function refund_due_pico( $order ) {
+	$got = gmp_init( (string) ( $order['received_pico'] ?? '0' ), 10 );
+	$exp = gmp_init( (string) ( $order['expected_pico'] ?? '0' ), 10 );
+	$st  = (string) ( $order['status'] ?? '' );
+	if ( in_array( $st, array( 'expired', 'cancelled' ), true ) ) { return gmp_cmp( $got, 0 ) > 0 ? gmp_strval( $got ) : '0'; }
+	if ( in_array( $st, array( 'paid', 'shipped' ), true ) && gmp_cmp( $got, $exp ) > 0 ) { return gmp_strval( gmp_sub( $got, $exp ) ); }
+	return '0';
+}
+
+/** Admin: the buyer's return address, flagged with the amount owed when there is one. */
+function refund_block_html( $o ) {
+	$ra  = trim( (string) ( $o['return_address'] ?? '' ) );
+	$due = refund_due_pico( $o );
+	if ( '' === $ra && '0' === $due ) { return ''; }
+	$out = '<div style="margin-top:6px;font-size:11px">';
+	if ( '0' !== $due ) {
+		$out .= '<div style="color:#f0b45a;font-weight:600">Refund due: <span class="mono">' . h( pico_to_xmr( $due ) ) . ' XMR</span></div>';
+	}
+	if ( '' !== $ra ) {
+		$id   = 'ra' . (int) ( $o['id'] ?? 0 );
+		$out .= '<div class="muted">Return to: <span class="mono" id="' . $id . '" style="word-break:break-all">' . h( $ra ) . '</span> '
+			. '<button type="button" class="cbtn tiny" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById(\'' . $id . '\').textContent)">copy</button></div>';
+	} else {
+		$out .= '<div class="muted">No return address on file (order placed before it was required).</div>';
+	}
+	return $out . '</div>';
+}
+
 function pico_to_xmr( $pico ) {
 	$p = gmp_init( (string) $pico, 10 );
 	if ( gmp_cmp( $p, 0 ) <= 0 ) { return '0'; }

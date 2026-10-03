@@ -118,6 +118,8 @@
         }
         if (d.status === 'paid' || d.status === 'shipped') {
           if (doneEl) doneEl.style.display = 'block';
+          var op = document.getElementById('overpaid'), opAmt = document.getElementById('overpaid-amt');
+          if (op && opAmt && d.refund_xmr && d.refund_xmr !== '0') { opAmt.textContent = d.refund_xmr; op.style.display = 'block'; }
           stop = true;
         }
         // the worker has now killed it — reload so the server renders the dead-order page

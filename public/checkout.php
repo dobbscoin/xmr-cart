@@ -54,6 +54,16 @@ if ( mb_strlen( $email ) > 180 ) { fail( 'That email address is too long.' ); }
 if ( mb_strlen( $addr )  > 600 ) { fail( 'That address is too long — please shorten it.' ); }
 if ( mb_strlen( $phone ) > 40 )  { fail( 'That phone number is too long.' ); }
 
+$refund = preg_replace( '/\s+/', '', (string) req( 'return_address', '' ) );
+if ( '' === $refund ) { fail( 'Please give an XMR return address, so anything owed back to you can be sent.' ); }
+if ( ! xmr()->refundAddressValid( $refund ) ) {
+	fail( "That XMR return address isn't a valid Monero address for this network. Copy a standard (4…) or subaddress (8…) from your wallet; integrated addresses aren't accepted." );
+}
+if ( $refund === Config::primaryAddress()
+	|| store()->one( 'SELECT 1 FROM orders WHERE subaddress=? LIMIT 1', array( $refund ) ) ) {
+	fail( "That's one of this shop's own addresses. Give an address from your wallet." );
+}
+
 // a usable postal address needs more than one word
 if ( mb_strlen( $addr ) < 10 ) { fail( 'That address looks incomplete — we need enough to post to.' ); }
 
@@ -112,12 +122,12 @@ try {
 	store()->q(
 		'INSERT INTO orders
 		 (token,product_id,product_name,product_subhead,qty,currency,price_fiat,xmr_rate,xmr_amount,expected_pico,
-		  sub_minor,subaddress,contact,ship_name,ship_email,ship_addr,ship_phone,
+		  sub_minor,subaddress,contact,ship_name,ship_email,ship_addr,ship_phone,return_address,
 		  status,created_height,checkpoint_height,created_at,expires_at)
-		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, "pending", ?,?,?,?)',
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, "pending", ?,?,?,?)',
 		array(
 			$token, $first['id'], $legacyName, (string) ( $first['subhead'] ?? '' ), $units, $cur, $totalFiat, $rate, $xmrAmount, $expected,
-			$minor, $sub, $contact, $name, $email, $addr, $phone,
+			$minor, $sub, $contact, $name, $email, $addr, $phone, $refund,
 			(int) $tip, max( 0, (int) $tip - 3 ), now(), now() + $ttl,
 		)
 	);

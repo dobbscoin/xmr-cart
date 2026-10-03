@@ -443,3 +443,11 @@ body.console a{color:#e0a074}
 .card a.ph{text-decoration:none;cursor:pointer}
 .card a.ph img{transition:transform .25s ease}
 .card a.ph:hover img{transform:scale(1.03)}
+
+/* XMR return address: dots until "show" (text input, so no password-manager prompts) */
+.masked-wrap{display:flex;gap:6px;align-items:stretch}
+.masked-wrap input{flex:1;min-width:0;font-size:12px}
+input.masked{-webkit-text-security:disc}
+input.masked.unmasked{-webkit-text-security:none}
+.reveal{font:inherit;font-size:12px;border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink-soft);border-radius:4px;padding:0 10px;cursor:pointer}
+.reveal:hover{color:var(--ink)}

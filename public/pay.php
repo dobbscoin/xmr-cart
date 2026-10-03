@@ -43,6 +43,11 @@ if ( $dead ) {
 		. 'window and that window has closed. Anything sent to the old address now will not be credited.</p>';
 	echo '<p>The items have been returned to stock. Start a new order and you will be quoted a fresh '
 		. 'rate and a fresh address.</p>';
+	$due = refund_due_pico( $order );
+	if ( '0' !== $due ) {
+		echo '<div class="notice" style="margin-top:12px">We received <strong class="mono">' . h( pico_to_xmr( $due ) )
+			. ' XMR</strong> for this order. It will be sent back to the return address you gave at checkout.</div>';
+	}
 	echo '<p style="margin-top:18px"><a class="btn" href="index.php">Back to the catalog</a></p>';
 	echo '</div>';
 	store_foot();
@@ -101,6 +106,8 @@ if ( $dead ) {
 		</div>
 
 		<div id="done" style="display:none;margin-top:18px" class="notice" >Payment confirmed — thank you. Your order will be shipped to the address you provided.</div>
+		<?php $due = refund_due_pico( $order ); ?>
+		<div id="overpaid" class="notice" style="<?php echo '0' === $due ? 'display:none;' : ''; ?>margin-top:12px">You sent <strong class="mono" id="overpaid-amt"><?php echo h( pico_to_xmr( $due ) ); ?></strong> XMR more than this order. The difference will be sent back to the return address you gave at checkout.</div>
 
 		<?php if ( $demo ) : ?>
 		<form method="post" style="margin-top:20px">

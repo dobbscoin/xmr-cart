@@ -26,6 +26,17 @@
   }
   function units(c) { return c.reduce(function (a, x) { return a + x.qty; }, 0); }
 
+  // Masked fields (XMR return address): a show/hide toggle.
+  document.querySelectorAll('[data-reveal]').forEach(function (b) {
+    var input = document.getElementById(b.getAttribute('data-reveal'));
+    if (!input) return;
+    b.addEventListener('click', function () {
+      var shown = input.classList.toggle('unmasked');
+      b.textContent = shown ? 'hide' : 'show';
+      b.setAttribute('aria-pressed', shown ? 'true' : 'false');
+    });
+  });
+
   var bar = document.getElementById('cartbar');
   function paint(c) {
     if (!bar) return;
