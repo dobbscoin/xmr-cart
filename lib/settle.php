@@ -127,8 +127,17 @@ function settle_order( Store $store, Xmr $xmr, array $order, $tip = null ) {
 	} elseif ( in_array( $v['status'], array( 'mempool', 'partial' ), true ) ) {
 		$new = 'confirming';
 	} else {
-		// nothing credited yet — expire an untouched order past its quote window.
-		if ( now() > (int) $order['expires_at'] ) {
+		// nothing credited yet — expire an untouched order past its quote window, but only
+		// once (a) the scan has reached the current tip and (b) a grace period has passed.
+		// The scanner sees mined blocks only, so a payment sent near the end of the window
+		// can sit in the mempool for a few minutes; expiring it then would keep the coin
+		// and kill the order. The pay page stops showing the address at expires_at, so the
+		// grace only protects payments that were already on their way.
+		$grace    = 60 * max( 0, (int) Config::get( 'expiry_grace_minutes', 20 ) );
+		$scanned  = $store->one( 'SELECT checkpoint_height FROM orders WHERE id=?', array( $order['id'] ) );
+		$caughtUp = strpos( (string) $order['subaddress'], 'DEMO-' ) === 0
+			|| ( $scanned && (int) $scanned['checkpoint_height'] >= (int) $tip );
+		if ( $caughtUp && now() > (int) $order['expires_at'] + $grace ) {
 			// Status change + stock release in one guarded transaction. If an admin
 			// cancelled it since we read the row, they already released the stock.
 			order_close_and_release( $order['id'], 'expired' );

@@ -35,6 +35,7 @@ return array(
 	'min_confirmations' => 10,                      // 10 ~= the standard spendable depth
 	'tolerance_atomic'  => 0,                       // accepted shortfall, piconero (0 = exact)
 	'order_ttl_minutes' => 30,                      // quote/price lock window before expiry.
+	'expiry_grace_minutes' => 20,                   // after the window, keep scanning this long before expiring (late-mined payments).
 	                                                // TTL is the window to SEND, not to confirm — the
 	                                                // moment any output is seen (including in the mempool),
 	                                                // the order goes 'confirming' and TTL is irrelevant.
