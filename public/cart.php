@@ -7,8 +7,11 @@
  */
 require_once __DIR__ . '/inc.php';
 
-$loaded = isset( $_GET['c'] );
-$want   = cart_parse( (string) req( 'c', '' ) );
+// ?add=<id>&qty=<n> comes from the product page's Add-to-cart form when the browser
+// can't keep a cart (JS off / storage blocked): treat it as a one-line cart.
+$adding = ! isset( $_GET['c'] ) && isset( $_GET['add'] );
+$loaded = isset( $_GET['c'] ) || $adding;
+$want   = cart_parse( $adding ? (int) req( 'add', 0 ) . ':' . max( 1, (int) req( 'qty', 1 ) ) : (string) req( 'c', '' ) );
 $cur    = strtoupper( (string) Config::get( 'store_currency', 'usd' ) );
 $rate   = price()->xmrRate();
 

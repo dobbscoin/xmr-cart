@@ -1,7 +1,7 @@
 /*
  * Cart, kept in the buyer's browser. localStorage holds [{id, qty}] and nothing
  * else; names, prices and stock always come from the server (cart.php). With
- * storage blocked the Add-to-cart button stays hidden and the single-item Buy
+ * storage blocked, Add to cart opens cart.php?add=<id>&qty=<n> with just that item
  * form on each product page works as before.
  */
 (function () {
@@ -41,13 +41,12 @@
   if (/[?&]cart=done\b/.test(location.search) && cart) { cart = []; save(cart); }
   paint(cart);
 
-  // Product page: Add to cart.
+  // Product page: Add to cart. The form itself goes to cart.php?add=..; with a working
+  // browser cart we merge in place instead so the buyer can keep shopping.
+  var form = document.getElementById('addform');
   var add = document.getElementById('addcart');
-  if (add && cart !== null) {
-    add.hidden = false;
-    var or = document.querySelector('.addcart-or');
-    if (or) or.hidden = false;
-    add.addEventListener('click', function () {
+  if (form && add && cart !== null) {
+    form.addEventListener('submit', function (e) {
       var c = load() || [];
       var id = +add.dataset.id, max = +add.dataset.stock;
       var qEl = document.getElementById('qty');
@@ -55,13 +54,11 @@
       var line = null;
       c.forEach(function (x) { if (x.id === id) line = x; });
       if (line) line.qty = Math.min(max, line.qty + q); else c.push({ id: id, qty: Math.min(max, q) });
+      if (!save(c)) return;               // can't keep a cart here: let the form open cart.php with this item
+      e.preventDefault();
+      paint(c);
       var msg = document.getElementById('addcart-msg');
-      if (save(c)) {
-        paint(c);
-        msg.innerHTML = 'Added. <a href="cart.php?c=' + enc(c) + '">View cart &amp; check out</a>';
-      } else {
-        msg.textContent = "Couldn't save your cart in this browser. You can still buy this item on its own below.";
-      }
+      msg.innerHTML = 'Added. <a href="cart.php?c=' + enc(c) + '">View cart &amp; check out</a>';
       msg.hidden = false;
     });
   }

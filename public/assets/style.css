@@ -438,3 +438,8 @@ body.console a{color:#e0a074}
 .card{scroll-margin-top:16px}
 .card:target{outline:2px solid var(--struck);outline-offset:3px;animation:cardping 1.6s ease-out 1}
 @keyframes cardping{from{outline-color:var(--struck)}to{outline-color:transparent}}
+
+/* card photo is a link to the item page */
+.card a.ph{text-decoration:none;cursor:pointer}
+.card a.ph img{transition:transform .25s ease}
+.card a.ph:hover img{transform:scale(1.03)}

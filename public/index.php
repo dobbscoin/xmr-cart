@@ -35,7 +35,7 @@ store_head( '' );
 		<div class="grid">
 			<?php foreach ( $sec['products'] as $p ) : $img = product_img_url( $p ); $out = (int) $p['stock'] <= 0; ?>
 			<article class="card" id="<?php echo h( item_anchor( $p ) ); ?>">
-				<div class="ph"><?php echo $img ? '<img src="' . $img . '" alt="' . h( $p['name'] ) . '">' : '<span class="noimg">no image</span>'; ?></div>
+				<a class="ph" href="product.php?id=<?php echo (int) $p['id']; ?>" tabindex="-1" aria-hidden="true"><?php echo $img ? '<img src="' . $img . '" alt="">' : '<span class="noimg">no image</span>'; ?></a>
 				<div class="body">
 					<h3><?php echo h( $p['name'] ); ?></h3>
 					<?php if ( $p['sku'] !== '' ) : ?><div class="spec"><span class="stamp mono"><?php echo h( $p['sku'] ); ?></span></div><?php endif; ?>

@@ -55,25 +55,17 @@ store_head( $p['name'] );
 		<?php if ( $out ) : ?>
 			<p class="notice">This item is sold out.</p>
 		<?php else : ?>
-		<form method="post" action="checkout.php" style="margin-top:18px">
-			<?php echo csrf_field(); ?>
-			<input type="hidden" name="product_id" value="<?php echo (int) $p['id']; ?>">
+		<form method="get" action="cart.php" id="addform" style="margin-top:18px">
+			<input type="hidden" name="add" value="<?php echo (int) $p['id']; ?>">
 			<div class="field">
 				<label for="qty">Quantity</label>
 				<select id="qty" name="qty">
 					<?php for ( $i = 1; $i <= min( 10, (int) $p['stock'] ); $i++ ) echo '<option>' . $i . '</option>'; ?>
 				</select>
 			</div>
-			<div class="addcart-row">
-				<button class="btn ghost block" type="button" id="addcart" hidden
-				        data-id="<?php echo (int) $p['id']; ?>" data-stock="<?php echo (int) $p['stock']; ?>">Add to cart</button>
-				<p class="hint" id="addcart-msg" hidden></p>
-				<p class="hint addcart-or" hidden>Or buy just this one now:</p>
-			</div>
-			<?php echo ship_fields_html(); ?>
-			<button class="btn block" type="submit"<?php echo $rate > 0 ? '' : ' disabled'; ?>>
-				<?php echo $rate > 0 ? 'Place order & get payment address' : 'Pricing temporarily unavailable'; ?>
-			</button>
+			<button class="btn block" type="submit" id="addcart"
+			        data-id="<?php echo (int) $p['id']; ?>" data-stock="<?php echo (int) $p['stock']; ?>">Add to cart</button>
+			<p class="hint" id="addcart-msg" hidden></p>
 		</form>
 		<button type="button" class="share share-wide" data-share="product.php?id=<?php echo (int) $p['id']; ?>" data-title="<?php echo h( $p['name'] ); ?>">Share this item</button>
 		<?php endif; ?>
