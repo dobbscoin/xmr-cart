@@ -8,6 +8,8 @@
  * Rules:
  *   - paid & shipped  : purge PII SHIP_KEEP_DAYS after shipped_at
  *   - expired/cancelled: purge PII DEAD_KEEP_DAYS after created_at (never shipped)
+ *   - expired/cancelled with NOTHING received: deleted outright at the same point
+ *     (empty dead orders are clutter; one that received coin is kept, a refund is owed)
  * Financial columns (amount, txids, height, status) are untouched.
  *
  * Idempotent. Safe to run daily from cron. Prints a one-line summary.
@@ -44,7 +46,17 @@ $b = $db->q(
   array($deadCut)
 )->rowCount();
 
+// Empty dead orders: no coin ever arrived, so there is nothing to account for or refund.
+// order_items / payments go with them (ON DELETE CASCADE).
+$c = $db->q(
+  "DELETE FROM orders
+   WHERE status IN ('expired','cancelled')
+     AND created_at < ? AND received_pico = '0'
+     AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id = orders.id)",
+  array($deadCut)
+)->rowCount();
+
 fwrite(STDOUT, sprintf(
-  "[%s] pii-purge: scrubbed %d shipped(>%dd) + %d dead(>%dd) = %d rows\n",
-  date('c'), $a, SHIP_KEEP_DAYS, $b, DEAD_KEEP_DAYS, $a + $b
+  "[%s] pii-purge: scrubbed %d shipped(>%dd) + %d dead(>%dd) = %d rows; deleted %d empty dead orders\n",
+  date('c'), $a, SHIP_KEEP_DAYS, $b, DEAD_KEEP_DAYS, $a + $b, $c
 ));
