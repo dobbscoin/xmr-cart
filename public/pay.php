@@ -105,7 +105,7 @@ if ( $dead ) {
 			<a href="index.php">Start a new order</a> for a fresh quote and address.
 		</div>
 
-		<div id="done" style="display:none;margin-top:18px" class="notice" >Payment confirmed — thank you. Your order will be shipped to the address you provided.</div>
+		<div id="done" style="display:none;margin-top:18px" class="notice" >Payment confirmed — thank you. <?php echo '' !== trim( (string) ( $order['ship_addr'] ?? '' ) ) || '' === trim( (string) ( $order['ship_email'] ?? '' ) ) ? 'Your order will be shipped to the address you provided.' : 'Your order will be delivered to the email address you gave.'; ?></div>
 		<?php $due = refund_due_pico( $order ); ?>
 		<div id="overpaid" class="notice" style="<?php echo '0' === $due ? 'display:none;' : ''; ?>margin-top:12px">You sent <strong class="mono" id="overpaid-amt"><?php echo h( pico_to_xmr( $due ) ); ?></strong> XMR more than this order. The difference will be sent back to the return address you gave at checkout.</div>
 

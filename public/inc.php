@@ -84,7 +84,7 @@ function store_foot() {
 // live in lib/catalog.php so the admin console can use them too.
 
 /** Name / email / address / phone fields shared by the Buy form and the cart. */
-function ship_fields_html() {
+function ship_fields_html( $needShip = true ) {
 	ob_start(); ?>
 	<div class="field">
 		<label for="ship_name">Name <span class="req">*</span></label>
@@ -96,9 +96,10 @@ function ship_fields_html() {
 		<label for="ship_email">Email <span class="req">*</span></label>
 		<input id="ship_email" name="ship_email" type="email" autocomplete="email" maxlength="180" required
 		       placeholder="you@example.com">
-		<div class="hint">Used only to reach you about this order.</div>
+		<div class="hint"><?php echo $needShip ? 'Used only to reach you about this order.' : 'Digital items are delivered to this email, so check it carefully.'; ?></div>
 	</div>
 
+	<?php if ( $needShip ) : ?>
 	<div class="field">
 		<label for="ship_addr">Shipping address <span class="req">*</span></label>
 		<textarea id="ship_addr" name="ship_addr" rows="5" maxlength="600" required
@@ -113,6 +114,7 @@ function ship_fields_html() {
 		       placeholder="Only if your courier needs it">
 		<span class="hint">Stored only to fulfil your order.</span>
 	</div>
+	<?php endif; ?>
 
 	<div class="field">
 		<label for="return_address">XMR return address <span class="req">*</span></label>

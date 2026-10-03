@@ -49,6 +49,7 @@ $uurl = rtrim( (string) Config::get( 'uploads_url', 'assets/products' ), '/' );
 				<div class="field"><label for="pq">Stock</label><input id="pq" name="stock" inputmode="numeric" placeholder="50" value="<?php echo h( $editP['stock'] ); ?>"></div>
 			</div>
 			<div class="field"><label for="ps">SKU <span class="muted">(optional)</span></label><input id="ps" name="sku" placeholder="SKU-001" value="<?php echo h( $editP['sku'] ); ?>"></div>
+			<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:2px 0 12px"><input type="hidden" name="needs_shipping" value="0"><input type="checkbox" name="needs_shipping" value="1"<?php echo (int) ( $editP['needs_shipping'] ?? 1 ) !== 0 ? ' checked' : ''; ?>> Needs a shipping address <span class="muted">(untick for digital items: checkout then asks for name, email and XMR return address only)</span></label>
 			<div class="field"><label for="pd">Description</label><textarea id="pd" name="description" placeholder="What the buyer would want to know before committing."><?php echo h( $editP['description'] ); ?></textarea></div>
 			<div class="field"><label for="pi">Replace main image (jpg / png / webp)</label><input id="pi" name="image" type="file" accept="image/png,image/jpeg,image/webp"><span class="hint">Leave empty to keep the current main image.</span></div>
 			<div class="field"><label for="pg">Add more photos (optional — select several)</label><input id="pg" name="gallery[]" type="file" multiple accept="image/png,image/jpeg,image/webp"><span class="hint">Reverse, edge, packaging, close-ups…</span></div>
@@ -245,6 +246,7 @@ $uurl = rtrim( (string) Config::get( 'uploads_url', 'assets/products' ), '/' );
 					<div class="field"><label for="pq">Stock</label><input id="pq" name="stock" inputmode="numeric" placeholder="50"></div>
 				</div>
 				<div class="field"><label for="ps">SKU <span class="muted">(optional)</span></label><input id="ps" name="sku" placeholder="SKU-001"></div>
+				<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:2px 0 12px"><input type="hidden" name="needs_shipping" value="0"><input type="checkbox" name="needs_shipping" value="1"<?php echo true ? ' checked' : ''; ?>> Needs a shipping address <span class="muted">(untick for digital items: checkout then asks for name, email and XMR return address only)</span></label>
 				<div class="field"><label for="pd">Description</label><textarea id="pd" name="description" placeholder="What the buyer would want to know before committing."></textarea></div>
 				<div class="field"><label for="pi">Main image (jpg / png / webp)</label><input id="pi" name="image" type="file" accept="image/png,image/jpeg,image/webp"></div>
 				<div class="field"><label for="pg">More photos (optional — select several)</label><input id="pg" name="gallery[]" type="file" multiple accept="image/png,image/jpeg,image/webp"><span class="hint">Reverse, edge, packaging, close-ups…</span></div>

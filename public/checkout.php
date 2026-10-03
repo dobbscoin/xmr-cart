@@ -34,6 +34,9 @@ foreach ( $want as $pid => $q ) {
 	}
 	$lines[] = array( 'p' => $p, 'qty' => $q );
 }
+// A cart of only digital items (needs_shipping=0) takes no postal address.
+$needShip = cart_needs_shipping( array_map( function ( $l ) { return $l['p']; }, $lines ) );
+
 // Never trust the browser's `required` attribute — validate server-side.
 $name  = trim( (string) req( 'ship_name', '' ) );
 $email = trim( (string) req( 'ship_email', '' ) );
@@ -46,7 +49,8 @@ $addr = str_replace( array( "\r\n", "\r" ), "\n", $addr );
 if ( '' === $name )  { fail( 'Please give us a name for the parcel.' ); }
 if ( '' === $email ) { fail( 'Please give us an email so we can reach you about this order.' ); }
 if ( ! filter_var( $email, FILTER_VALIDATE_EMAIL ) ) { fail( "That email address doesn't look right." ); }
-if ( '' === $addr )  { fail( 'We need a shipping address to send your order.' ); }
+if ( ! $needShip ) { $addr = ''; $phone = ''; }   // nothing to post: don't keep a stray address
+if ( $needShip && '' === $addr )  { fail( 'We need a shipping address to send your order.' ); }
 
 // sane bounds — stops abuse without being fussy about format
 if ( mb_strlen( $name )  > 120 ) { fail( 'That name is too long.' ); }
@@ -65,7 +69,7 @@ if ( $refund === Config::primaryAddress()
 }
 
 // a usable postal address needs more than one word
-if ( mb_strlen( $addr ) < 10 ) { fail( 'That address looks incomplete — we need enough to post to.' ); }
+if ( $needShip && mb_strlen( $addr ) < 10 ) { fail( 'That address looks incomplete — we need enough to post to.' ); }
 
 // keep the legacy single-field column populated for anything that still reads it
 $contact = $name . ' <' . $email . '>'

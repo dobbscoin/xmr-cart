@@ -88,6 +88,7 @@ class Store {
 		// Additive column migrations. SQLite `ADD COLUMN` is safe but not idempotent —
 		// gate each one on PRAGMA table_info() so this stays cheap and re-runnable.
 		$this->addColumnIfMissing( 'products', 'subhead',         'TEXT NOT NULL DEFAULT ""' );
+		$this->addColumnIfMissing( 'products', 'needs_shipping',  'INTEGER NOT NULL DEFAULT 1' );   // 0 = digital item
 		$this->addColumnIfMissing( 'orders',   'product_subhead', 'TEXT NOT NULL DEFAULT ""' );
 		$this->addColumnIfMissing( 'batches',  'sort',            'INTEGER NOT NULL DEFAULT 0' );
 		$this->addColumnIfMissing( 'batches',  'description',     'TEXT NOT NULL DEFAULT ""' );

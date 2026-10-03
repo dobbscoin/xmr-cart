@@ -196,3 +196,11 @@ function seed_demo_products() {
 	}
 	return true;
 }
+
+/** Does anything in this list of product rows need a postal address? (needs_shipping=0 marks a digital item.) */
+function cart_needs_shipping( $products ) {
+	foreach ( $products as $p ) {
+		if ( ! isset( $p['needs_shipping'] ) || (int) $p['needs_shipping'] !== 0 ) { return true; }
+	}
+	return false;
+}

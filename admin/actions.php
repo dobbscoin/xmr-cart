@@ -98,6 +98,7 @@ switch ( $action ) {
 				)
 			);
 			$pid = (int) $store->one( 'SELECT last_insert_rowid() AS id' )['id'];
+			$store->q( 'UPDATE products SET needs_shipping=? WHERE id=?', array( '0' === (string) req( 'needs_shipping', '1' ) ? 0 : 1, $pid ) );
 			save_gallery( $store, $pid, upload_images( 'gallery' ) );
 		}
 		break;
@@ -140,6 +141,7 @@ switch ( $action ) {
 						$id,
 					)
 				);
+				$store->q( 'UPDATE products SET needs_shipping=? WHERE id=?', array( '0' === (string) req( 'needs_shipping', '1' ) ? 0 : 1, $id ) );
 				$p['batch_id'] = $newBatch;   // redirect to wherever it now lives
 			}
 		}

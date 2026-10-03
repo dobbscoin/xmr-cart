@@ -30,6 +30,7 @@ foreach ( $want as $pid => $q ) {
 	$lines[]  = array( 'p' => $p, 'qty' => $q, 'unit' => $unit, 'line' => $line );
 }
 $total = round( $total, 2 );
+$needShip = cart_needs_shipping( array_map( function ( $l ) { return $l['p']; }, $lines ) );
 $clean = implode( ',', array_map( function ( $l ) { return (int) $l['p']['id'] . ':' . (int) $l['qty']; }, $lines ) );
 
 csrf_token(); // set the cookie before any output, or the form's token has nothing behind it
@@ -75,7 +76,7 @@ store_head( 'Cart' );
 			<?php foreach ( $lines as $l ) : ?>
 				<input type="hidden" name="items[<?php echo (int) $l['p']['id']; ?>]" value="<?php echo (int) $l['qty']; ?>">
 			<?php endforeach; ?>
-			<?php echo ship_fields_html(); ?>
+			<?php echo ship_fields_html( $needShip ); ?>
 			<button class="btn block" type="submit"<?php echo $rate > 0 ? '' : ' disabled'; ?>>
 				<?php echo $rate > 0 ? 'Place order & get payment address' : 'Pricing temporarily unavailable'; ?>
 			</button>
