@@ -75,6 +75,7 @@ store_head( $p['name'] );
 				<?php echo $rate > 0 ? 'Place order & get payment address' : 'Pricing temporarily unavailable'; ?>
 			</button>
 		</form>
+		<button type="button" class="share share-wide" data-share="product.php?id=<?php echo (int) $p['id']; ?>" data-title="<?php echo h( $p['name'] ); ?>">Share this item</button>
 		<?php endif; ?>
 	</div>
 </div>

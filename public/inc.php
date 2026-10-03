@@ -76,6 +76,8 @@ function store_foot() {
 	echo '</div></footer>';
 	$jsv = @filemtime( __DIR__ . '/assets/cart.js' ) ?: time();
 	echo '<script src="assets/cart.js?v=' . $jsv . '"></script>';
+	$shv = @filemtime( __DIR__ . '/assets/share.js' ) ?: time();
+	echo '<script src="assets/share.js?v=' . $shv . '"></script>';
 	echo '</body></html>';
 }
 // Catalog helpers (active_batch, live_products, find_product, product_img_url, pill)

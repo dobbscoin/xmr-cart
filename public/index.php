@@ -34,7 +34,7 @@ store_head( '' );
 
 		<div class="grid">
 			<?php foreach ( $sec['products'] as $p ) : $img = product_img_url( $p ); $out = (int) $p['stock'] <= 0; ?>
-			<article class="card">
+			<article class="card" id="<?php echo h( item_anchor( $p ) ); ?>">
 				<div class="ph"><?php echo $img ? '<img src="' . $img . '" alt="' . h( $p['name'] ) . '">' : '<span class="noimg">no image</span>'; ?></div>
 				<div class="body">
 					<h3><?php echo h( $p['name'] ); ?></h3>
@@ -62,6 +62,7 @@ store_head( '' );
 						<span class="stk <?php echo $out ? 'out' : ''; ?>"><?php echo $out ? 'sold out' : ( (int) $p['stock'] . ' available' ); ?></span>
 					</div>
 					<a class="btn block" href="product.php?id=<?php echo (int) $p['id']; ?>"<?php echo $out ? ' aria-disabled="true"' : ''; ?>><?php echo $out ? 'Sold out' : 'View & buy'; ?></a>
+					<button type="button" class="share" data-share="product.php?id=<?php echo (int) $p['id']; ?>" data-title="<?php echo h( $p['name'] ); ?>">Share</button>
 				</div>
 			</article>
 			<?php endforeach; ?>

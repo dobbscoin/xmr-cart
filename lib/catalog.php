@@ -1,4 +1,9 @@
 <?php
+/** #anchor for an item card: its SKU slugged ("AG-XMR-1" -> "ag-xmr-1"), else "item-<id>". */
+function item_anchor( $p ) {
+	$a = trim( preg_replace( '~[^a-z0-9]+~', '-', strtolower( (string) ( $p['sku'] ?? '' ) ) ), '-' );
+	return '' !== $a ? $a : 'item-' . (int) $p['id'];
+}
 /** Catalog + status helpers shared by the storefront and the admin console. */
 
 /** Every batch currently on sale, in display order. */

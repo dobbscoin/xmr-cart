@@ -430,3 +430,11 @@ body.console a{color:#e0a074}
 }
 .order-items{margin:10px 0 6px}
 .order-items .item-sub{display:block;font-size:12px;color:var(--pewter)}
+
+/* Share: quiet text button; a #anchor'd card gets a brief orange ring */
+.share{font:inherit;font-size:12.5px;background:none;border:0;color:var(--pewter);cursor:pointer;padding:2px 0;align-self:center;text-decoration:underline dotted;text-underline-offset:3px}
+.share:hover{color:var(--struck-ink)}
+.share-wide{display:block;margin:12px auto 0}
+.card{scroll-margin-top:16px}
+.card:target{outline:2px solid var(--struck);outline-offset:3px;animation:cardping 1.6s ease-out 1}
+@keyframes cardping{from{outline-color:var(--struck)}to{outline-color:transparent}}
