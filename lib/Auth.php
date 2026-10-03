@@ -37,8 +37,7 @@ class Auth {
 		if ( count( $parts ) !== 2 ) { return false; }
 		list( $ts, $sig ) = $parts;
 		if ( ! ctype_digit( $ts ) || ( time() - (int) $ts ) > self::TTL ) { return false; }
-		$want = hash_hmac( 'sha256', $ts, csrf_secret() );
-		return hash_equals( $want, $sig );
+		return hash_equals( self::sign( $ts ), $sig );
 	}
 
 	public static function login( $pass ) {
@@ -47,14 +46,19 @@ class Auth {
 			return false;
 		}
 		$ts  = (string) time();
-		$sig = hash_hmac( 'sha256', $ts, csrf_secret() );
-		setcookie( 'xsadmin', $ts . '.' . $sig, array(
+		setcookie( 'xsadmin', $ts . '.' . self::sign( $ts ), array(
 			'expires'  => time() + self::TTL,
 			'httponly' => true,
 			'samesite' => 'Strict',
 			'path'     => '/',
+			'secure'   => is_https(),
 		) );
 		return true;
+	}
+
+	/** Cookie signature. Binding the passphrase hash in means a passphrase change logs out every old session. */
+	private static function sign( $ts ) {
+		return hash_hmac( 'sha256', $ts . '|' . self::hash(), csrf_secret() );
 	}
 
 	public static function logout() {

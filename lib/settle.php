@@ -124,6 +124,14 @@ function settle_order( Store $store, Xmr $xmr, array $order, $tip = null ) {
 	$new = $status;
 	if ( 'paid' === $v['status'] ) {
 		$new = 'paid';
+	} elseif ( 'partial' === $v['status'] && now() > (int) $order['expires_at'] + 60 * max( 1, (int) Config::get( 'underpaid_hold_hours', 24 ) ) * 60 ) {
+		// Underpaid and the hold has run out. Without this a dust payment would keep the
+		// order 'confirming', and its stock reserved, forever. The received outputs stay
+		// recorded on the order (received_pico, txids) so the operator can refund or settle by hand.
+		$store->q( "UPDATE orders SET received_pico=?, txids=? WHERE id=?", array( $v['seen_pico'], implode( ',', $v['txids'] ), $order['id'] ) );
+		order_close_and_release( $order['id'], 'expired' );
+		$row = $store->one( 'SELECT status FROM orders WHERE id=?', array( $order['id'] ) );
+		return $row ? $row['status'] : $status;
 	} elseif ( in_array( $v['status'], array( 'mempool', 'partial' ), true ) ) {
 		$new = 'confirming';
 	} else {

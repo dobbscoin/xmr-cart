@@ -24,12 +24,23 @@ function req( $key, $default = '' ) {
 /* ---- CSRF (double-submit cookie, signed) --------------------------------- */
 function csrf_secret() {
 	$s = (string) Config::get( 'cookie_secret', '' );
-	return $s !== '' ? $s : 'insecure-default-change-me';
+	// The admin login cookie is an HMAC under this secret. A blank, shipped-default or short
+	// value would let anyone mint one, so refuse to run rather than fall back to a known string.
+	if ( strlen( $s ) < 32 || 'CHANGE_ME_TO_A_LONG_RANDOM_STRING' === $s ) {
+		http_response_code( 500 );
+		exit( "Set cookie_secret in config.php to a random string of 32+ characters, e.g. the output of:\n  php -r 'echo bin2hex(random_bytes(32)).PHP_EOL;'" );
+	}
+	return $s;
+}
+/** True when this request came in over HTTPS (directly or via a TLS-terminating proxy). */
+function is_https() {
+	return ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== strtolower( (string) $_SERVER['HTTPS'] ) )
+		|| 'https' === strtolower( (string) ( $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '' ) );
 }
 function csrf_token() {
 	if ( empty( $_COOKIE['csrf'] ) ) {
 		$raw = bin2hex( random_bytes( 16 ) );
-		setcookie( 'csrf', $raw, array( 'httponly' => false, 'samesite' => 'Strict', 'path' => '/' ) );
+		setcookie( 'csrf', $raw, array( 'httponly' => false, 'samesite' => 'Strict', 'path' => '/', 'secure' => is_https() ) );
 		$_COOKIE['csrf'] = $raw;
 	}
 	return hash_hmac( 'sha256', $_COOKIE['csrf'], csrf_secret() );

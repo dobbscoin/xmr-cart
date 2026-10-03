@@ -51,9 +51,14 @@ sudo chown -R www-data:www-data data/ public/assets/products/ public/assets/bann
 sudo chmod 750 data/ public/assets/products/ public/assets/banner/
 ```
 
+In `config.php`, set `cookie_secret` and `setup_key` to long random strings
+(`php -r 'echo bin2hex(random_bytes(32)).PHP_EOL;'`). The store refuses to run
+with the shipped placeholder secret.
+
 Point a vhost at `public/`. Load the storefront, then load `/admin/` — the
-first visit sends you to a one-time setup page that asks for a passphrase
-and stores its hash in the SQLite kv table. From then on it's a normal login.
+first visit sends you to a one-time setup page that asks for your `setup_key`
+and a passphrase, and stores the passphrase hash in the SQLite kv table.
+From then on it's a normal login.
 
 Admin works over the public internet out of the box — no VPN required to get
 started. For a shop taking real orders, additionally lock admin/ down at the
@@ -144,9 +149,9 @@ automatically re-probes against the new list.
 
 ## Running your own Monero node
 
-The store treats the node fleet as untrusted infrastructure — the fail-closed
-commitment check is the safety net — but running your own primary is a big
-privacy and reliability upgrade. What the operator sees when queries hit
+Settlement trusts whichever node answers, so for real money list only nodes
+you run. A public node can't steal funds, but a malicious one could report a
+payment that never happened. Running your own node is also a big privacy upgrade. What the operator sees when queries hit
 their node is which subaddresses your buyers are paying. That's a leak worth
 closing.
 
@@ -273,8 +278,9 @@ the passphrase form is never even offered from the public internet. Pick one:
   network reconfig.
 
 Any of these turns the passphrase into a second line of defence, which is
-what you want if the shop earns money. If you're just kicking the tyres —
-the passphrase alone is fine.
+what you want if the shop earns money. The app itself does not throttle
+login attempts, so if admin/ stays public, at least rate-limit
+`/admin/login.php` in the web server (e.g. nginx `limit_req`, a few per minute).
 
 ## Brand assets
 

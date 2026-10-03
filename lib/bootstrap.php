@@ -13,6 +13,8 @@ require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/catalog.php';
 
 Config::load();
+// Web requests need a real cookie_secret (it signs the admin cookie); fail up front, not mid-page.
+if ( PHP_SAPI !== 'cli' ) { csrf_secret(); }
 
 $GLOBALS['store'] = new Store( (string) Config::get( 'db_path', dirname( __DIR__ ) . '/data/store.sqlite' ) );
 $GLOBALS['xmr']   = new Xmr();

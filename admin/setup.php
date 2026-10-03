@@ -63,6 +63,7 @@ $vals = array( 'address' => '', 'viewkey' => '', 'seed' => true );
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 	csrf_check();
+	$setupKey = trim( (string) Config::get( 'setup_key', '' ) );
 	$pass    = (string) req( 'pass', '' );
 	$confirm = (string) req( 'confirm', '' );
 	$address = trim( (string) req( 'primary_address', '' ) );
@@ -70,7 +71,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 	$seed    = req( 'seed_demo', '' ) === '1';
 	$vals    = array( 'address' => $address, 'viewkey' => $viewkey, 'seed' => $seed );
 
-	if ( strlen( $pass ) < 12 ) {
+	if ( '' === $setupKey || ! hash_equals( $setupKey, (string) req( 'setup_key', '' ) ) ) {
+		// Without this, whoever reaches a fresh install first owns the store and its wallet.
+		$err = 'Setup key missing or wrong. It is the setup_key value in config.php.';
+	} elseif ( strlen( $pass ) < 12 ) {
 		$err = 'Passphrase must be at least 12 characters.';
 	} elseif ( $pass !== $confirm ) {
 		$err = 'Passphrases did not match.';
@@ -113,6 +117,11 @@ console_head( 'First-run setup', xmr()->isReal() );
 	<form method="post" autocomplete="off">
 		<?php echo csrf_field(); ?>
 		<input type="hidden" name="action" value="setup">
+
+		<?php if ( '' === trim( (string) Config::get( 'setup_key', '' ) ) ) : ?>
+		<div class="loud">Set <span class="mono">setup_key</span> in <span class="mono">config.php</span> first (any long random string), then reload this page. It proves you are the one installing this store.</div>
+		<?php endif; ?>
+		<div class="field"><label for="setup_key">Setup key <span class="muted">(the setup_key value from config.php)</span></label><input id="setup_key" name="setup_key" type="password" autocomplete="off" required></div>
 
 		<h3 style="font-family:var(--serif);color:#eceef1;font-size:15px;margin:18px 0 4px">1. Admin passphrase</h3>
 		<div class="field"><label for="pass">Passphrase <span class="muted">(12+ characters)</span></label><input id="pass" name="pass" type="password" autofocus autocomplete="new-password" minlength="12" required></div>

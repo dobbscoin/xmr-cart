@@ -4,7 +4,11 @@
  * later market move never changes what an already-placed order owes.
  *
  * Order of preference: manual_xmr_rate (if > 0) > fresh cache > CoinGecko fetch >
- * stale cache. Returns 0.0 only if there is genuinely no rate to be had.
+ * recent cache. Returns 0.0 when there is no trustworthy rate, and checkout
+ * refuses a 0 rate, so a dead or lying feed stops sales instead of mispricing them:
+ *   - a cached rate older than price_max_stale_minutes (default 15) is not used;
+ *   - a fetched rate under half or over double the last good one (if that is
+ *     under 6h old) is treated as a failed fetch.
  */
 class Price {
 	private $store;
@@ -23,13 +27,20 @@ class Price {
 			return (float) $cached['v'];
 		}
 
+		$age     = $cached ? time() - (int) $cached['updated_at'] : PHP_INT_MAX;
+		$last    = $cached ? (float) $cached['v'] : 0.0;
 		$fetched = $this->fetch( $cur );
-		if ( $fetched > 0 ) {
+		if ( $fetched > 0 && is_finite( $fetched ) && $last > 0 && $age < 6 * 3600
+			&& ( $fetched < $last / 2 || $fetched > $last * 2 ) ) {
+			$fetched = 0.0;   // implausible jump against a recent good rate: treat as a bad fetch
+		}
+		if ( $fetched > 0 && is_finite( $fetched ) ) {
 			$this->store->kvSet( $key, (string) $fetched );
 			return $fetched;
 		}
-		// network hiccup: fall back to the last known rate rather than blocking checkout.
-		if ( $cached ) { return (float) $cached['v']; }
+		// network hiccup: a recent rate is fine; an old one would misprice every order.
+		$maxStale = 60 * max( 1, (int) Config::get( 'price_max_stale_minutes', 15 ) );
+		if ( $cached && $age < $maxStale ) { return $last; }
 		return 0.0;
 	}
 

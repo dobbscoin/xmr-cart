@@ -125,7 +125,7 @@ $_source = ( $_kv && trim( (string) $_kv['v'] ) !== '' ) ? 'console' : 'config.p
 						<button class="cbtn" title="Move down">↓</button>
 					</form>
 					<?php endif; ?>
-					<form class="inline" method="post" action="actions.php" onsubmit="return confirm('Remove <?php echo h( $_url ); ?> from the node list?')">
+					<form class="inline" method="post" action="actions.php" onsubmit="return confirm(<?php echo h( json_encode( 'Remove ' . $_url . ' from the node list?' ) ); ?>)">
 						<?php echo csrf_field(); ?>
 						<input type="hidden" name="action" value="node_remove">
 						<input type="hidden" name="idx" value="<?php echo (int) $_i; ?>">

@@ -26,6 +26,7 @@ $_errmsg = array(
 	'bad_address' => 'That address is not a valid Monero primary address (must be 95 chars, start with 4, and pass checksum).',
 	'bad_viewkey' => 'The private view key must be exactly 64 hexadecimal characters.',
 	'mismatch'    => 'That private view key does not belong to that address. Double-check you copied the SECRET view key (not the public one) from the wallet you meant.',
+	'open_orders' => 'There are open orders. They were quoted to the current wallet, and the store only watches one wallet, so they would never be seen paid. Wait until they settle or expire, or cancel them, then change the wallet.',
 );
 ?>
 <h2 style="margin-top:0">Wallet identity <span class="muted" style="font-size:13px">&mdash; the address buyer payments derive from</span></h2>
@@ -85,7 +86,7 @@ $_errmsg = array(
 	<p class="muted" style="font-size:12px;margin:0 0 10px">
 		Where to find these: <span class="mono">monero-wallet-gui</span> → <strong>Settings</strong> → <strong>Info</strong> tab. Copy the <strong>Primary address</strong> + <strong>Secret view key</strong>. The pair is cryptographically verified before save &mdash; a typo or wrong-wallet paste is rejected inline.
 	</p>
-	<form method="post" action="actions.php" autocomplete="off" onsubmit="return confirm('Change the store wallet? All FUTURE orders will derive subaddresses from the new address. In-flight orders keep their existing subaddresses.')">
+	<form method="post" action="actions.php" autocomplete="off" onsubmit="return confirm('Change the store wallet? All FUTURE orders will derive subaddresses from the new address. (Refused while any order is still open.)')">
 		<?php echo csrf_field(); ?>
 		<input type="hidden" name="action" value="wallet_save">
 		<div class="field">

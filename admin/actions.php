@@ -214,8 +214,13 @@ switch ( $action ) {
 			// lets an admin-compromise silently redirect real money. Cutting
 			// the compromised-cookie attack in half is worth 5 seconds of
 			// friction for a change that should happen ~once.
+			$openOrders = (int) $store->one( "SELECT COUNT(*) c FROM orders WHERE status IN ('pending','confirming')" )['c'];
 			if ( ! password_verify( $confirm, trim( (string) ( store()->kvGet( 'admin_pass_hash' )['v'] ?? Config::get( 'admin_pass_hash', '' ) ) ) ) ) {
 				$msg = 'wrong_pass';
+			} elseif ( $openOrders > 0 ) {
+				// The scanner watches with the CURRENT view key only; open orders' subaddresses
+				// belong to the old wallet and would never be seen paid.
+				$msg = 'open_orders';
 			} elseif ( $address === '' || $viewkey === '' ) {
 				$msg = 'missing';
 			} elseif ( strlen( $address ) !== 95 || $address[0] !== '4' ) {
@@ -243,6 +248,8 @@ switch ( $action ) {
 			$confirm = (string) req( 'confirm_pass', '' );
 			if ( ! password_verify( $confirm, trim( (string) ( store()->kvGet( 'admin_pass_hash' )['v'] ?? Config::get( 'admin_pass_hash', '' ) ) ) ) ) {
 				$back = 'index.php?tab=wallet&err=wrong_pass';
+			} elseif ( (int) $store->one( "SELECT COUNT(*) c FROM orders WHERE status IN ('pending','confirming')" )['c'] > 0 ) {
+				$back = 'index.php?tab=wallet&err=open_orders';
 			} else {
 				$store->q( "DELETE FROM kv WHERE k IN ('wallet_primary_address','wallet_view_key')" );
 				$back = 'index.php?tab=wallet&reverted=1';
@@ -463,12 +470,11 @@ function store_upload_tmp( $tmp ) {
 	if ( ! $info || ! isset( $map[ $info[2] ] ) ) { return ''; }
 	$dir = (string) Config::get( 'uploads_dir', dirname( __DIR__ ) . '/public/assets/products' );
 	if ( ! is_dir( $dir ) ) { @mkdir( $dir, 0770, true ); }
-	$fname = bin2hex( random_bytes( 8 ) ) . '.' . $map[ $info[2] ];
-	if ( ! @move_uploaded_file( $tmp, $dir . '/' . $fname ) ) {
-		// dev server / non-HTTP upload path fallback
-		if ( ! @rename( $tmp, $dir . '/' . $fname ) ) { return ''; }
-	}
-	return $fname;
+	// Always re-encode: it drops EXIF (phone photos carry GPS) and anything hiding in the file.
+	$fname = bin2hex( random_bytes( 8 ) ) . '.jpg';
+	$ok    = resize_to_jpeg( $tmp, $info, $dir . '/' . $fname, (int) Config::get( 'image_max_px', 1400 ), (int) Config::get( 'image_quality', 82 ) );
+	@unlink( $tmp );
+	return $ok ? $fname : '';
 }
 
 /** Insert gallery rows for freshly uploaded files. */
@@ -522,13 +528,8 @@ function save_banner_image( $f ) {
 	$name = 'banner-' . bin2hex( random_bytes( 6 ) ) . '.jpg';
 	$dest = $dir . '/' . $name;
 
-	if ( ! resize_to_jpeg( $f['tmp_name'], $info, $dest, $max, $qual ) ) {
-		// GD choked — keep the original bytes rather than losing the upload
-		$name = 'banner-' . bin2hex( random_bytes( 6 ) ) . '.' . $map[ $info[2] ];
-		$dest = $dir . '/' . $name;
-		if ( ! @move_uploaded_file( $f['tmp_name'], $dest ) && ! @rename( $f['tmp_name'], $dest ) ) { return ''; }
-	}
-	return $name;
+	// No raw-bytes fallback: an un-re-encoded upload would keep its EXIF (GPS) data.
+	return resize_to_jpeg( $f['tmp_name'], $info, $dest, $max, $qual ) ? $name : '';
 }
 
 /** Validate, downscale, re-encode, and store an uploaded image. Returns filename or ''. */
