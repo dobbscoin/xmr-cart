@@ -124,7 +124,7 @@ function ship_fields_html( $needShip = true ) {
 			       data-lpignore="true" data-1p-ignore placeholder="4… or 8…  (95 characters)">
 			<button type="button" class="reveal" data-reveal="return_address" aria-pressed="false">show</button>
 		</div>
-		<span class="hint">A Monero address of yours. Used only if money has to go back to you: an over- or underpayment, or an order we can't fill. For security purposes, refunds will ONLY be made to this address.</span>
+		<span class="hint refund-hint">A Monero address of yours. Used only if money has to go back to you,<br>or there's something in an order we can't fill.<br>For security purposes, refunds will ONLY be made to this address.</span>
 	</div>
 <?php
 	return ob_get_clean();

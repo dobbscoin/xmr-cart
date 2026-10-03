@@ -451,3 +451,6 @@ input.masked{-webkit-text-security:disc}
 input.masked.unmasked{-webkit-text-security:none}
 .reveal{font:inherit;font-size:12px;border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink-soft);border-radius:4px;padding:0 10px;cursor:pointer}
 .reveal:hover{color:var(--ink)}
+
+/* XMR return address hint: centered, broken where the shop wrote it */
+.refund-hint{display:block;text-align:center;line-height:1.5}
