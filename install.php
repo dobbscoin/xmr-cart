@@ -89,7 +89,10 @@ if ( ! yes( "[x] Send ALL notifications to $admin?", true ) ) {
 		$split[ $k ] = '' === $v ? $admin : $v;
 	}
 }
-$from   = ask( 'Send email from', 'orders@' . ( '' !== $host ? $host : 'example.com' ), $isEmail );
+// Suggest orders@<domain> only for a real domain name (not an IP or localhost), so the
+// default always passes the email check instead of looping.
+$fromDefault = ( '' !== $host && filter_var( $host, FILTER_VALIDATE_IP ) === false && false !== strpos( $host, '.' ) ) ? 'orders@' . $host : '';
+$from   = ask( 'Send email from', $fromDefault, $isEmail );
 $buyers = yes( 'Email buyers a payment receipt and shipping notice?', true );
 say( c( '2', "  (Mail goes out through this server's mail setup. For it to arrive, $from's domain needs SPF/DKIM that allow this server.)" ) );
 
