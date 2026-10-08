@@ -41,19 +41,25 @@ lifted intact and wrapped in a lightweight WordPress shim so it runs without WP.
 ## Install
 
 ```bash
-git clone https://github.com/YOUR/xmr-cart.git /var/www/xmr-cart
+git clone https://git.subgenius.finance/SubGeniusFinance/xmr-cart.git /var/www/xmr-cart
 cd /var/www/xmr-cart
-cp config.example.php config.php
-$EDITOR config.php                  # fill in view key, node URL, currency, etc.
-
-# Runtime dirs must be writable by the web-server user:
-sudo chown -R www-data:www-data data/ public/assets/products/ public/assets/banner/
-sudo chmod 750 data/ public/assets/products/ public/assets/banner/
+sudo ./install.sh                   # or: sudo php install.php
 ```
 
-In `config.php`, set `cookie_secret` and `setup_key` to long random strings
-(`php -r 'echo bin2hex(random_bytes(32)).PHP_EOL;'`). The store refuses to run
-with the shipped placeholder secret.
+The installer checks PHP and its extensions, then asks for the store name and
+URL, the **admin email** (with **[x] send all notifications here**, or split
+orders / refunds / outages / stock to different addresses), the From address,
+whether buyers get a receipt and a shipping notice, and your network + node (it
+test-calls the node). It generates `cookie_secret` and `setup_key`, writes
+`config.php` (640), makes `data/` and the upload dirs writable by the web-server
+user, and prints the nginx block, the cron lines and your setup key for this
+path. Run without sudo and it prints the ownership commands instead.
+
+Prefer doing it by hand? `cp config.example.php config.php`, edit it, and set
+`cookie_secret` and `setup_key` to long random strings
+(`php -r 'echo bin2hex(random_bytes(32)).PHP_EOL;'`); the store refuses to run
+with the shipped placeholder secret. Make `data/`, `public/assets/products/` and
+`public/assets/banner/` writable by the web-server user.
 
 Point a vhost at `public/`. Load the storefront, then load `/admin/` — the
 first visit sends you to a one-time setup page that asks for your `setup_key`

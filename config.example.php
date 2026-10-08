@@ -77,7 +77,12 @@ return array(
 	// Sends a short "order N is paid, ship it" mail to the operator. Buyer PII
 	// is DELIBERATELY not included — the console is the one place ship-to data
 	// is exposed. Leave notify_email blank to disable.
-	'notify_email'       => '',                     // where to send operator alerts
+	'notify_email'       => '',                     // where to send operator alerts (install.php asks for it)
+	// Optional: send some kinds of alert somewhere else. Blank = notify_email.
+	'notify_email_orders'  => '',                   // new + paid orders
+	'notify_email_refunds' => '',                   // REFUND DUE
+	'notify_email_health'  => '',                   // payment checks down / checkout paused (+ all clear)
+	'notify_email_stock'   => '',                   // low stock / sold out
 	'notify_from'        => 'orders@example.com',   // From: address (must be one your MTA can send)
 	// With notify_email set, the owner also gets: REFUND DUE, payment checks down/back,
 	// checkout paused/back, low stock / sold out, and new orders. Buyers get a payment

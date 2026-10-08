@@ -394,7 +394,7 @@ function banner_style( $base = '/' ) {
  * must never break settlement, so everything here is wrapped and non-fatal.
  */
 function notify_order_paid( $order ) {
-	$to = trim( (string) Config::get( 'notify_email', '' ) );
+	$to = notify_owner_address( 'orders' );
 	if ( '' === $to ) { return; }
 
 	$from = trim( (string) Config::get( 'notify_from', 'orders@localhost' ) );

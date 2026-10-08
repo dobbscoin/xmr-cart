@@ -42,11 +42,18 @@ function notify_send( $to, $subject, $body, $replyTo = '' ) {
 	}
 }
 
-function notify_owner_address() { return trim( (string) Config::get( 'notify_email', '' ) ); }
+/**
+ * Who gets an owner alert. $cat: orders | refunds | health | stock. Each can have its own
+ * address (notify_email_<cat>); blank falls back to notify_email (set by install.php).
+ */
+function notify_owner_address( $cat = 'orders' ) {
+	$own = trim( (string) Config::get( 'notify_email_' . $cat, '' ) );
+	return '' !== $own ? $own : trim( (string) Config::get( 'notify_email', '' ) );
+}
 
 /** Owner alert, sent at most once per $key (null = always). */
-function notify_owner( $subject, $body, $key = null ) {
-	$to = notify_owner_address();
+function notify_owner( $subject, $body, $key = null, $cat = 'orders' ) {
+	$to = notify_owner_address( $cat );
 	if ( '' === $to ) { return false; }
 	if ( null !== $key ) {
 		if ( store()->kvGet( 'notify:' . $key ) ) { return false; }
@@ -57,8 +64,10 @@ function notify_owner( $subject, $body, $key = null ) {
 
 /** Base URL of the storefront (for links in buyer mail). Config site_url wins; else learned from checkout. */
 function notify_site_url() {
-	$u = rtrim( trim( (string) Config::get( 'site_url', '' ) ), '/' );
-	if ( '' !== $u ) { return $u; }
+	foreach ( array( 'site_url', 'store_url' ) as $k ) {
+		$u = rtrim( trim( (string) Config::get( $k, '' ) ), '/' );
+		if ( preg_match( '~^https?://~', $u ) && false === strpos( $u, 'example.com' ) ) { return $u; }
+	}
 	$row = store()->kvGet( 'site:base_url' );
 	return $row ? rtrim( (string) $row['v'], '/' ) : '';
 }
@@ -102,7 +111,7 @@ function notify_refund_due( $order, $why ) {
 		. "Items:\n" . notify_items_text( $order['id'] ) . "\n"
 		. "The buyer's XMR return address is on the order in the console (Orders tab). Send the refund\n"
 		. "from your own wallet; the store never sends coin.";
-	return notify_owner( 'REFUND DUE — order #' . (int) $order['id'] . ' (' . pico_to_xmr( $due ) . ' XMR)', $body, 'refund:' . (int) $order['id'] );
+	return notify_owner( 'REFUND DUE — order #' . (int) $order['id'] . ' (' . pico_to_xmr( $due ) . ' XMR)', $body, 'refund:' . (int) $order['id'], 'refunds' );
 }
 
 // ---- 2 + 3. health: payment checks / price feed -----------------------------------
@@ -118,14 +127,14 @@ function notify_health( $name, $ok, $downSubject, $downBody, $upSubject ) {
 		if ( $sent ) {
 			store()->q( 'DELETE FROM kv WHERE k=?', array( 'notify:health:' . $name ) );
 			$mins = (int) round( ( now() - (int) ( $since['v'] ?? now() ) ) / 60 );
-			notify_owner( $upSubject, "All clear: back to normal after about $mins minutes." );
+			notify_owner( $upSubject, "All clear: back to normal after about $mins minutes.", null, 'health' );
 		}
 		return;
 	}
 	if ( ! $since ) { store()->kvSet( 'health:' . $name . ':down_since', (string) now() ); return; }
 	$limit = 60 * max( 1, (int) Config::get( 'notify_health_minutes', 15 ) );
 	if ( ! $sent && now() - (int) $since['v'] >= $limit ) {
-		notify_owner( $downSubject, $downBody . "\n\nDown since: " . date( 'Y-m-d H:i', (int) $since['v'] ) . ' UTC.', 'health:' . $name );
+		notify_owner( $downSubject, $downBody . "\n\nDown since: " . date( 'Y-m-d H:i', (int) $since['v'] ) . ' UTC.', 'health:' . $name, 'health' );
 	}
 }
 
@@ -146,10 +155,10 @@ function notify_stock( $productId ) {
 	}
 	if ( 0 === $stock && 'out' !== $level ) {
 		store()->kvSet( $key, 'out' );
-		notify_owner( 'SOLD OUT — ' . $p['name'], "Sold out: $label\n\nStock is 0 (some may come back if an unpaid order expires).\nRestock it in the console's Catalog tab." );
+		notify_owner( 'SOLD OUT — ' . $p['name'], "Sold out: $label\n\nStock is 0 (some may come back if an unpaid order expires).\nRestock it in the console's Catalog tab.", null, 'stock' );
 	} elseif ( $stock > 0 && '' === $level ) {
 		store()->kvSet( $key, 'low' );
-		notify_owner( 'Low stock — ' . $p['name'] . " ($stock left)", "Low stock: $label\n\nOnly $stock left (alert level: $thr)." );
+		notify_owner( 'Low stock — ' . $p['name'] . " ($stock left)", "Low stock: $label\n\nOnly $stock left (alert level: $thr).", null, 'stock' );
 	}
 }
 
