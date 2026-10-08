@@ -94,7 +94,7 @@ class Store {
 		$this->addColumnIfMissing( 'batches',  'description',     'TEXT NOT NULL DEFAULT ""' );
 		// Structured ship-to fields. checkout.php and purge_pii.php have written these for
 		// a while, but nothing created them, so a fresh install couldn't take an order.
-		foreach ( array( 'ship_name', 'ship_email', 'ship_addr', 'ship_phone', 'return_address' ) as $c ) {
+		foreach ( array( 'ship_name', 'ship_email', 'ship_addr', 'ship_phone', 'return_address', 'tracking_carrier', 'tracking_number' ) as $c ) {
 			$this->addColumnIfMissing( 'orders', $c, 'TEXT NOT NULL DEFAULT ""' );
 		}
 

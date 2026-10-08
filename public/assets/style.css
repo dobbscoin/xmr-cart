@@ -464,3 +464,6 @@ input.masked.unmasked{-webkit-text-security:none}
 .console .cbtn.icon.star svg{fill:currentColor;stroke-width:1.2}
 .console .cbtn.icon.star{color:#e8c25a}
 .console .cbtn.icon.star:hover{background:#e8c25a;border-color:#e8c25a;color:#1b1d22}
+
+/* admin: Mark shipped with optional carrier + tracking */
+.console .ship-form select,.console .ship-form input{font-size:12px;padding:5px 6px}

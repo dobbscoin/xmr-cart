@@ -35,11 +35,12 @@ if ( ! defined( 'XMRCART_ADMIN' ) ) { die( 'no direct access' ); }
 					<div class="muted" style="font-size:11.5px;white-space:pre-wrap;margin-top:3px"><?php echo h( $sa ); ?></div>
 				<?php endif; ?>
 				<?php echo refund_block_html( $o ); ?>
+				<?php if ( 'shipped' === $o['status'] && '' !== trim( (string) ( $o['tracking_number'] ?? '' ) ) ) : $tu = notify_tracking_url( (string) $o['tracking_carrier'], (string) $o['tracking_number'] ); ?><div class="muted" style="font-size:11px;margin-top:4px">Tracking: <?php echo $tu ? '<a href="' . h( $tu ) . '" target="_blank" rel="noopener">' . h( $o['tracking_number'] ) . '</a>' : h( $o['tracking_number'] ); ?> (<?php echo h( notify_carriers()[ (string) $o['tracking_carrier'] ][0] ?? 'Other' ); ?>)</div><?php endif; ?>
 			</td>
 			<td class="mono" style="font-size:12px"><?php echo $firstTx ? explorer_tx( $firstTx, Config::get( 'network', 'mainnet' ) ) : '—'; ?></td>
 			<td style="white-space:nowrap">
 				<?php if ( 'paid' === $o['status'] ) : ?>
-					<form class="inline" method="post" action="actions.php"><?php echo csrf_field(); ?><input type="hidden" name="action" value="order_ship"><input type="hidden" name="id" value="<?php echo (int) $o['id']; ?>"><button class="cbtn go">Mark shipped</button></form>
+					<form class="inline ship-form" method="post" action="actions.php"><?php echo csrf_field(); ?><input type="hidden" name="action" value="order_ship"><input type="hidden" name="id" value="<?php echo (int) $o['id']; ?>"><select name="tracking_carrier" title="Carrier (optional)"><?php foreach ( notify_carriers() as $ck => $cv ) : ?><option value="<?php echo h( $ck ); ?>"><?php echo h( $cv[0] ); ?></option><?php endforeach; ?></select> <input name="tracking_number" placeholder="Tracking # (optional)" maxlength="60" style="width:150px"> <button class="cbtn go">Mark shipped</button></form>
 				<?php elseif ( in_array( $o['status'], array( 'pending', 'confirming' ), true ) ) : ?>
 					<?php if ( ! $real ) : ?><form class="inline" method="post" action="actions.php"><?php echo csrf_field(); ?><input type="hidden" name="action" value="sim_pay"><input type="hidden" name="id" value="<?php echo (int) $o['id']; ?>"><button class="cbtn">Simulate pay</button></form> <?php endif; ?>
 					<form class="inline" method="post" action="actions.php" onsubmit="return confirm('Cancel this order?')"><?php echo csrf_field(); ?><input type="hidden" name="action" value="order_cancel"><input type="hidden" name="id" value="<?php echo (int) $o['id']; ?>"><button class="cbtn warn">Cancel</button></form>

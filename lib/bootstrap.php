@@ -11,6 +11,7 @@ require_once __DIR__ . '/NodeProbe.php';
 require_once __DIR__ . '/Xmr.php';
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/catalog.php';
+require_once __DIR__ . '/notify.php';
 
 Config::load();
 // Web requests need a real cookie_secret (it signs the admin cookie); fail up front, not mid-page.

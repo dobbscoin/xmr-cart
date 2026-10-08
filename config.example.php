@@ -79,6 +79,14 @@ return array(
 	// is exposed. Leave notify_email blank to disable.
 	'notify_email'       => '',                     // where to send operator alerts
 	'notify_from'        => 'orders@example.com',   // From: address (must be one your MTA can send)
+	// With notify_email set, the owner also gets: REFUND DUE, payment checks down/back,
+	// checkout paused/back, low stock / sold out, and new orders. Buyers get a payment
+	// receipt and a shipped email (with tracking) unless notify_buyers is false.
+	'notify_new_orders'  => true,                   // email the owner when an order is placed (before payment)
+	'notify_low_stock'   => 2,                      // alert when an item drops to this many left (and at 0)
+	'notify_health_minutes' => 15,                  // node / price-feed outage length before alerting
+	'notify_buyers'      => true,                   // payment-received + shipped emails to the buyer
+	'site_url'           => '',                     // e.g. https://shop.example.com — for order links in buyer mail (blank = learned at checkout)
 
 	// ---- Paths --------------------------------------------------------------
 	'db_path'      => __DIR__ . '/data/store.sqlite',

@@ -425,10 +425,7 @@ function notify_order_paid( $order ) {
 		. "X-Mailer: xmr-cart\r\n"
 		. "Content-Type: text/plain; charset=UTF-8";
 
-	// never let a mail problem take down settlement
-	try {
-		@mail( $to, $sub, $body, $headers, '-f' . $from );
-	} catch ( \Throwable $e ) {
-		error_log( 'notify_order_paid failed: order #' . (int) $order['id'] );
-	}
+	// never let a mail problem take down settlement (notify_send never throws)
+	unset( $headers );
+	notify_send( $to, $sub, $body );
 }

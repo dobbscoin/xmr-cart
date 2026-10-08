@@ -130,7 +130,8 @@ function settle_order( Store $store, Xmr $xmr, array $order, $tip = null ) {
 		// recorded on the order (received_pico, txids) so the operator can refund or settle by hand.
 		$store->q( "UPDATE orders SET received_pico=?, txids=? WHERE id=?", array( $v['seen_pico'], implode( ',', $v['txids'] ), $order['id'] ) );
 		order_close_and_release( $order['id'], 'expired' );
-		$row = $store->one( 'SELECT status FROM orders WHERE id=?', array( $order['id'] ) );
+		$row = $store->one( 'SELECT * FROM orders WHERE id=?', array( $order['id'] ) );
+		if ( $row && 'expired' === $row['status'] ) { notify_refund_due( $row, 'underpaid' ); }
 		return $row ? $row['status'] : $status;
 	} elseif ( in_array( $v['status'], array( 'mempool', 'partial' ), true ) ) {
 		$new = 'confirming';
@@ -170,7 +171,11 @@ function settle_order( Store $store, Xmr $xmr, array $order, $tip = null ) {
 	// Fired exactly once, on the pending->paid edge ($paidAt is only set on that tick).
 	if ( 'paid' === $new && 'paid' !== $status ) {
 		$fresh = $store->one( 'SELECT * FROM orders WHERE id=?', array( $order['id'] ) );
-		if ( $fresh ) { notify_order_paid( $fresh ); }
+		if ( $fresh ) {
+			notify_order_paid( $fresh );
+			notify_buyer_paid( $fresh );
+			if ( '0' !== refund_due_pico( $fresh ) ) { notify_refund_due( $fresh, 'overpaid' ); }
+		}
 	}
 
 	return $new;

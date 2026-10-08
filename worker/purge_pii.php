@@ -26,9 +26,9 @@ $deadCut  = $now - DEAD_KEEP_DAYS * 86400;
 
 // A row is "already scrubbed" when every PII field is empty — skip those so the
 // count reflects real work and the job is idempotent.
-$blank = "ship_name='' AND ship_email='' AND ship_addr='' AND ship_phone='' AND contact='' AND return_address=''";
+$blank = "ship_name='' AND ship_email='' AND ship_addr='' AND ship_phone='' AND contact='' AND return_address='' AND tracking_number=''";
 
-$scrub = "ship_name='', ship_email='', ship_addr='', ship_phone='', contact='', return_address=''";
+$scrub = "ship_name='', ship_email='', ship_addr='', ship_phone='', contact='', return_address='', tracking_carrier='', tracking_number=''";
 
 $db = store();
 

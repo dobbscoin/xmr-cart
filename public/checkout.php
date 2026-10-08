@@ -148,4 +148,13 @@ try {
 	fail( 'Could not create the order. Please try again.' );
 }
 
+// Notifications never block the buyer: a mail problem must not stop the redirect.
+try {
+	notify_learn_site_url();
+	notify_new_order( $orderId );
+	foreach ( $lines as $l ) { notify_stock( (int) $l['p']['id'] ); }
+} catch ( \Throwable $e ) {
+	error_log( 'checkout notify failed: ' . $e->getMessage() );
+}
+
 redirect( 'pay.php?t=' . $token . ( $fromCart ? '&cart=done' : '' ) );

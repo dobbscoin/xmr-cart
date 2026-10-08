@@ -26,6 +26,14 @@ $xmr   = xmr();
 
 $tip = $xmr->tipHeight();
 $mode = $xmr->isReal() ? 'live' : 'DEMO';
+notify_health( 'node', null !== $tip,
+	'PAYMENT CHECKS DOWN — the store cannot reach its Monero node',
+	"The payment checker has not been able to reach the Monero node.\nNew payments are NOT being confirmed until it's back (nothing is lost; they'll settle when it returns).\n\nCheck the node, and the 'nodes' setting in config.php.",
+	'Payment checks are back' );
+notify_health( 'price', price()->xmrRate() > 0,
+	'CHECKOUT PAUSED — no usable XMR price',
+	"The store has had no usable XMR exchange rate, so checkout is refusing new orders (on purpose: it won't misprice them).\nIt usually comes back on its own when the price feed recovers.",
+	'Checkout is taking orders again (XMR price is back)' );
 if ( null === $tip ) {
 	fwrite( STDERR, "[" . date( 'c' ) . "] [$mode] node unreachable; will retry next tick.\n" );
 	exit( 0 );

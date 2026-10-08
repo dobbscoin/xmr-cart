@@ -114,6 +114,9 @@ function order_close_and_release( $orderId, $newStatus ) {
 			}
 		}
 		$db->exec( 'COMMIT' );
+		if ( $closed && function_exists( 'notify_stock' ) ) {
+			foreach ( order_items( $orderId ) as $i ) { notify_stock( (int) $i['product_id'] ); }
+		}
 		return $closed;
 	} catch ( \Throwable $e ) {
 		$db->exec( 'ROLLBACK' );

@@ -113,6 +113,7 @@ switch ( $action ) {
 
 
 	case 'edit_product':
+		register_shutdown_function( 'notify_stock', (int) req( 'id', 0 ) );   // after the update below
 		$id = (int) req( 'id', 0 );
 		$p  = $id ? $store->one( 'SELECT * FROM products WHERE id=?', array( $id ) ) : null;
 		if ( $p ) {
@@ -380,6 +381,7 @@ switch ( $action ) {
 		break;
 
 	case 'product_stock':
+		register_shutdown_function( 'notify_stock', (int) req( 'id', 0 ) );   // after the update below
 		$store->q( 'UPDATE products SET stock=? WHERE id=?', array( max( 0, (int) req( 'stock', 0 ) ), (int) req( 'id', 0 ) ) );
 		break;
 
@@ -409,13 +411,24 @@ switch ( $action ) {
 		break;
 
 	case 'order_ship':
-		$store->q( "UPDATE orders SET status='shipped', shipped_at=? WHERE id=? AND status='paid'", array( now(), (int) req( 'id', 0 ) ) );
+		$sid = (int) req( 'id', 0 );
+		$carrier = (string) req( 'tracking_carrier', '' );
+		if ( ! array_key_exists( $carrier, notify_carriers() ) ) { $carrier = ''; }
+		$tnum = substr( preg_replace( '/[^A-Za-z0-9 \-]/', '', (string) req( 'tracking_number', '' ) ), 0, 60 );
+		$shipped = $store->q( "UPDATE orders SET status='shipped', shipped_at=?, tracking_carrier=?, tracking_number=? WHERE id=? AND status='paid'",
+			array( now(), $carrier, trim( $tnum ), $sid ) )->rowCount();
+		if ( $shipped ) {
+			$so = $store->one( 'SELECT * FROM orders WHERE id=?', array( $sid ) );
+			if ( $so ) { notify_buyer_shipped( $so ); }
+		}
 		break;
 
 	case 'order_cancel':
 		// Only an open (pending/confirming) order can be cancelled; the guard inside
 		// releases each line's stock exactly once, even racing the worker's expiry.
 		order_close_and_release( (int) req( 'id', 0 ), 'cancelled' );
+		$co = $store->one( 'SELECT * FROM orders WHERE id=?', array( (int) req( 'id', 0 ) ) );
+		if ( $co && 'cancelled' === $co['status'] ) { notify_refund_due( $co, 'cancelled' ); }
 		break;
 
 	case 'order_delete':
