@@ -113,7 +113,7 @@ $_source = ( $_kv && trim( (string) $_kv['v'] ) !== '' ) ? 'console' : 'config.p
 						<input type="hidden" name="action" value="node_move">
 						<input type="hidden" name="idx" value="<?php echo (int) $_i; ?>">
 						<input type="hidden" name="dir" value="up">
-						<button class="cbtn" title="Move up">↑</button>
+						<button class="cbtn icon" title="Move up" aria-label="Move up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
 					</form>
 					<?php endif; ?>
 					<?php if ( $_i < count( $_config ) - 1 ) : ?>
@@ -122,7 +122,7 @@ $_source = ( $_kv && trim( (string) $_kv['v'] ) !== '' ) ? 'console' : 'config.p
 						<input type="hidden" name="action" value="node_move">
 						<input type="hidden" name="idx" value="<?php echo (int) $_i; ?>">
 						<input type="hidden" name="dir" value="down">
-						<button class="cbtn" title="Move down">↓</button>
+						<button class="cbtn icon" title="Move down" aria-label="Move down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 					</form>
 					<?php endif; ?>
 					<form class="inline" method="post" action="actions.php" onsubmit="return confirm(<?php echo h( json_encode( 'Remove ' . $_url . ' from the node list?' ) ); ?>)">

@@ -76,11 +76,11 @@ $uurl = rtrim( (string) Config::get( 'uploads_url', 'assets/products' ), '/' );
 					<div style="display:flex;gap:3px;padding:6px;flex-wrap:wrap">
 						<?php $common = csrf_field() . '<input type="hidden" name="batch_id" value="' . (int) $editP['batch_id'] . '"><input type="hidden" name="id" value="' . (int) $im['id'] . '">'; ?>
 						<?php if ( ! $isMain ) : ?>
-						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_main"><button class="cbtn" style="padding:3px 7px;font-size:11px" title="Make MAIN">★</button></form>
-						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_move"><input type="hidden" name="dir" value="up"><button class="cbtn" style="padding:3px 7px;font-size:11px" title="Move earlier">↑</button></form>
+						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_main"><button class="cbtn icon star" title="Make MAIN" aria-label="Make MAIN"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.9l-5.25 2.8 1-5.85L3.5 9.7l5.9-.9z"/></svg></button></form>
+						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_move"><input type="hidden" name="dir" value="up"><button class="cbtn icon" title="Move earlier" aria-label="Move earlier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button></form>
 						<?php endif; ?>
 						<?php if ( $ix < count( $editImgs ) - 1 ) : ?>
-						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_move"><input type="hidden" name="dir" value="down"><button class="cbtn" style="padding:3px 7px;font-size:11px" title="Move later">↓</button></form>
+						<form class="inline" method="post" action="actions.php"><?php echo $common; ?><input type="hidden" name="action" value="img_move"><input type="hidden" name="dir" value="down"><button class="cbtn icon" title="Move later" aria-label="Move later"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></form>
 						<?php endif; ?>
 						<form class="inline" method="post" action="actions.php" onsubmit="return confirm('Delete this image?')"><?php echo $common; ?><input type="hidden" name="action" value="img_delete"><button class="cbtn warn" style="padding:3px 7px;font-size:11px" title="Delete">✕</button></form>
 					</div>
@@ -117,10 +117,10 @@ $uurl = rtrim( (string) Config::get( 'uploads_url', 'assets/products' ), '/' );
 						<span style="margin-left:6px;white-space:nowrap">
 							<?php $bc = csrf_field() . '<input type="hidden" name="id" value="' . (int) $b['id'] . '"><input type="hidden" name="action" value="batch_move">'; ?>
 							<?php if ( $bi > 0 ) : ?>
-							<form class="inline" method="post" action="actions.php"><?php echo $bc; ?><input type="hidden" name="dir" value="up"><button class="cbtn" style="padding:2px 6px;font-size:11px" title="Move up">↑</button></form>
+							<form class="inline" method="post" action="actions.php"><?php echo $bc; ?><input type="hidden" name="dir" value="up"><button class="cbtn icon" title="Move up" aria-label="Move up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button></form>
 							<?php endif; ?>
 							<?php if ( $bi < count( $batches ) - 1 ) : ?>
-							<form class="inline" method="post" action="actions.php"><?php echo $bc; ?><input type="hidden" name="dir" value="down"><button class="cbtn" style="padding:2px 6px;font-size:11px" title="Move down">↓</button></form>
+							<form class="inline" method="post" action="actions.php"><?php echo $bc; ?><input type="hidden" name="dir" value="down"><button class="cbtn icon" title="Move down" aria-label="Move down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></form>
 							<?php endif; ?>
 						</span>
 						<form class="inline" method="post" action="actions.php" style="margin-top:4px;display:block">

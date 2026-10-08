@@ -454,3 +454,13 @@ input.masked.unmasked{-webkit-text-security:none}
 
 /* XMR return address hint: centered, broken where the shop wrote it */
 .refund-hint{display:block;text-align:center;line-height:1.5}
+
+/* icon buttons: reorder arrows + make-main star (admin) */
+.console .cbtn.icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;margin:0 2px;border-radius:6px;background:#2a2f39;border:1px solid #454c5c;color:#e9ecf0;vertical-align:middle;transition:background .15s,border-color .15s,color .15s,transform .1s}
+.console .cbtn.icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.console .cbtn.icon:hover{background:#ff6600;border-color:#ff6600;color:#fff}
+.console .cbtn.icon:active{transform:translateY(1px)}
+.console .cbtn.icon:focus-visible{outline:2px solid #ff9a52;outline-offset:2px}
+.console .cbtn.icon.star svg{fill:currentColor;stroke-width:1.2}
+.console .cbtn.icon.star{color:#e8c25a}
+.console .cbtn.icon.star:hover{background:#e8c25a;border-color:#e8c25a;color:#1b1d22}
